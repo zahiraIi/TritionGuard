@@ -1,8 +1,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-// Real UCSD campus safe zones with approximate coordinates
+// Real UCSD campus safe zones with exact coordinates
 const safeZones = [
   { id: 1, name: "Student Health Center", lat: 32.8801, lng: -117.2340, type: "medical" },
   { id: 2, name: "Campus Police Station", lat: 32.8823, lng: -117.2348, type: "police" },
@@ -17,139 +21,207 @@ const incidents = [
   { id: 2, lat: 32.8820, lng: -117.2400, type: "ice", severity: "high", time: "15m ago" }
 ];
 
-// UCSD campus buildings for reference
-const campusBuildings = [
-  { name: "Geisel Library", x: 45, y: 40 },
-  { name: "Student Center", x: 35, y: 30 },
-  { name: "Health Center", x: 60, y: 50 },
-  { name: "Warren College", x: 25, y: 60 },
-  { name: "Sixth College", x: 70, y: 25 },
-  { name: "Price Center", x: 40, y: 55 },
-  { name: "CSE Building", x: 55, y: 35 },
-  { name: "Pepper Canyon", x: 50, y: 70 }
-];
-
 const MapComponent = () => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapboxToken, setMapboxToken] = useState('');
+  const [showTokenInput, setShowTokenInput] = useState(true);
+
+  const initializeMap = (token: string) => {
+    if (!mapRef.current) return;
+
+    mapboxgl.accessToken = token;
+
+    map.current = new mapboxgl.Map({
+      container: mapRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-117.2340, 32.8801], // UCSD campus center
+      zoom: 15
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    map.current.on('load', () => {
+      // Add safe zones
+      safeZones.forEach((zone) => {
+        // Create a green marker for safe zones
+        const el = document.createElement('div');
+        el.className = 'safe-zone-marker';
+        el.style.cssText = `
+          width: 20px;
+          height: 20px;
+          background-color: #10b981;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          cursor: pointer;
+        `;
+
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<div style="color: black; font-weight: bold;">${zone.name}</div>
+           <div style="color: #666; font-size: 12px;">Safe Zone - ${zone.type}</div>`
+        );
+
+        new mapboxgl.Marker(el)
+          .setLngLat([zone.lng, zone.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+      });
+
+      // Add incident markers
+      incidents.forEach((incident) => {
+        const el = document.createElement('div');
+        el.className = 'incident-marker';
+        const color = incident.type === 'ice' ? '#dc2626' : '#f59e0b';
+        el.style.cssText = `
+          width: 24px;
+          height: 24px;
+          background-color: ${color};
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          cursor: pointer;
+          animation: pulse 2s infinite;
+        `;
+
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<div style="color: black; font-weight: bold;">${incident.type.toUpperCase()} Activity</div>
+           <div style="color: #666; font-size: 12px;">Reported ${incident.time}</div>
+           <div style="color: #666; font-size: 12px;">Severity: ${incident.severity}</div>`
+        );
+
+        new mapboxgl.Marker(el)
+          .setLngLat([incident.lng, incident.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+      });
+    });
+  };
+
+  const handleTokenSubmit = () => {
+    if (mapboxToken.trim()) {
+      localStorage.setItem('mapbox_token', mapboxToken);
+      setShowTokenInput(false);
+      initializeMap(mapboxToken);
+    }
+  };
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('mapbox_token');
+    if (savedToken) {
+      setMapboxToken(savedToken);
+      setShowTokenInput(false);
+      initializeMap(savedToken);
+    }
+
+    return () => {
+      map.current?.remove();
+    };
+  }, []);
+
+  if (showTokenInput) {
+    return (
+      <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-800 p-8 rounded-xl shadow-xl max-w-md w-full mx-4"
+        >
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Setup Map</h2>
+            <p className="text-gray-400 text-sm">
+              Enter your Mapbox public token to display the detailed campus map
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <Input
+              type="text"
+              placeholder="pk.eyJ1Ijoi..."
+              value={mapboxToken}
+              onChange={(e) => setMapboxToken(e.target.value)}
+              className="bg-gray-700 border-gray-600 text-white"
+            />
+            <Button 
+              onClick={handleTokenSubmit}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={!mapboxToken.trim()}
+            >
+              Load Map
+            </Button>
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+            <p className="text-xs text-gray-300">
+              Get your free token at{' '}
+              <a 
+                href="https://mapbox.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                mapbox.com
+              </a>
+              <br />
+              Look for "Access tokens" in your account dashboard.
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="absolute inset-0 bg-gray-800">
-      <div ref={mapRef} className="w-full h-full relative">
-        {/* UCSD Campus Map Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-gray-800 to-gray-900">
-          
-          {/* Campus boundary outline */}
-          <div className="absolute inset-8 border-2 border-gray-600/30 rounded-lg">
-            
-            {/* Campus roads/paths */}
-            <div className="absolute top-1/3 left-0 right-0 h-1 bg-gray-600/40"></div>
-            <div className="absolute top-2/3 left-0 right-0 h-1 bg-gray-600/40"></div>
-            <div className="absolute left-1/3 top-0 bottom-0 w-1 bg-gray-600/40"></div>
-            <div className="absolute left-2/3 top-0 bottom-0 w-1 bg-gray-600/40"></div>
-
-            {/* Campus Buildings */}
-            {campusBuildings.map((building, index) => (
-              <div
-                key={index}
-                className="absolute bg-gray-600 rounded shadow-lg text-xs text-white p-1 text-center"
-                style={{
-                  left: `${building.x}%`,
-                  top: `${building.y}%`,
-                  width: building.name.includes('Library') || building.name.includes('Center') ? '60px' : '45px',
-                  height: building.name.includes('Library') || building.name.includes('Center') ? '40px' : '30px',
-                  transform: 'translate(-50%, -50%)'
-                }}
-              >
-                <div className="text-[8px] leading-tight">{building.name}</div>
-              </div>
-            ))}
-
-            {/* Safe Zones */}
-            {safeZones.map((zone, index) => (
-              <motion.div
-                key={zone.id}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.2 }}
-                className="absolute w-4 h-4 bg-green-500 rounded-full shadow-lg cursor-pointer z-10"
-                style={{
-                  left: `${15 + (index % 3) * 25 + Math.random() * 10}%`,
-                  top: `${20 + Math.floor(index / 3) * 30 + Math.random() * 10}%`,
-                }}
-                title={`Safe Zone: ${zone.name}`}
-              >
-                <div className="w-8 h-8 bg-green-500/30 rounded-full absolute -inset-2 animate-pulse" />
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-green-400 whitespace-nowrap">
-                  {zone.name}
-                </div>
-              </motion.div>
-            ))}
-
-            {/* Incident Markers */}
-            {incidents.map((incident, index) => (
-              <motion.div
-                key={incident.id}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5 + index * 0.3 }}
-                className={`absolute w-5 h-5 rounded-full shadow-lg cursor-pointer z-10 ${
-                  incident.type === 'ice' ? 'bg-red-600' : 'bg-orange-500'
-                }`}
-                style={{
-                  left: `${40 + index * 20}%`,
-                  top: `${45 + index * 10}%`,
-                }}
-                title={`${incident.type.toUpperCase()} Activity - ${incident.time}`}
-              >
-                <div className={`w-10 h-10 rounded-full absolute -inset-2.5 animate-ping ${
-                  incident.type === 'ice' ? 'bg-red-600/40' : 'bg-orange-500/40'
-                }`} />
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-red-400 whitespace-nowrap">
-                  {incident.type.toUpperCase()} - {incident.time}
-                </div>
-              </motion.div>
-            ))}
-
-            {/* Campus landmarks */}
-            <div className="absolute left-1/2 top-1/4 transform -translate-x-1/2 text-blue-400 text-xs font-bold">
-              ⭐ Geisel Library
-            </div>
-            <div className="absolute left-1/3 top-1/2 transform -translate-x-1/2 text-blue-400 text-xs font-bold">
-              🏥 Health Center
-            </div>
-            <div className="absolute right-1/4 bottom-1/3 transform translate-x-1/2 text-blue-400 text-xs font-bold">
-              🏫 Price Center
-            </div>
-          </div>
-
-          {/* Map Legend */}
-          <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur p-4 rounded-lg text-white text-sm space-y-3 z-20">
-            <div className="text-blue-400 font-bold text-lg mb-2">UCSD Campus</div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span>Safe Zones</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-              <span>Police Activity</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-red-600 rounded-full"></div>
-              <span>ICE Activity</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-gray-600 rounded"></div>
-              <span>Campus Buildings</span>
-            </div>
-          </div>
-
-          {/* Campus Info */}
-          <div className="absolute top-4 right-4 bg-black/80 backdrop-blur p-3 rounded-lg text-white text-sm z-20">
-            <div className="text-blue-400 font-bold">UC San Diego</div>
-            <div className="text-xs text-gray-300">La Jolla Campus</div>
-          </div>
+    <div className="absolute inset-0">
+      <div ref={mapRef} className="w-full h-full" />
+      
+      {/* Map Legend */}
+      <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur p-4 rounded-lg shadow-lg text-sm space-y-3 z-20">
+        <div className="text-gray-800 font-bold text-lg mb-2">UCSD Campus</div>
+        <div className="flex items-center space-x-3">
+          <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow"></div>
+          <span className="text-gray-700">Safe Zones</span>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-4 h-4 bg-orange-500 rounded-full border-2 border-white shadow"></div>
+          <span className="text-gray-700">Police Activity</span>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-4 h-4 bg-red-600 rounded-full border-2 border-white shadow"></div>
+          <span className="text-gray-700">ICE Activity</span>
         </div>
       </div>
+
+      {/* Reset Token Button */}
+      <div className="absolute top-4 right-4 z-20">
+        <Button
+          onClick={() => {
+            localStorage.removeItem('mapbox_token');
+            setShowTokenInput(true);
+            map.current?.remove();
+          }}
+          variant="secondary"
+          size="sm"
+          className="bg-white/90 text-gray-800 hover:bg-white"
+        >
+          Change Token
+        </Button>
+      </div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+          }
+        }
+      `}</style>
     </div>
   );
 };

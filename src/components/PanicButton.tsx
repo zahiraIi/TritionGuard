@@ -1,16 +1,19 @@
-
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import NotificationService, { AlertNotification } from "@/services/NotificationService";
 
 const PanicButton = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [isRouterReady, setIsRouterReady] = useState(false);
   const { toast } = useToast();
+  const notificationService = NotificationService.getInstance();
   
   // Safely get navigate hook
   let navigate;
@@ -23,22 +26,41 @@ const PanicButton = () => {
     console.log("Router not ready yet");
   }
 
-  const handlePanicPress = () => {
+  const handlePanicPress = async () => {
     if (isPressed) return;
     
-    setIsPressed(true);
-    setCountdown(3);
+    try {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    } catch (error) {
+      console.log('Haptic feedback not available');
+    }
 
-    const countdownInterval = setInterval(() => {
+    setIsPressed(true);
+    setCountdown(5);
+
+    const newIntervalId = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(countdownInterval);
+          clearInterval(newIntervalId);
+          setIntervalId(null);
           // Trigger emergency protocol
           toast({
             title: "Emergency Alert Sent",
             description: "Community has been notified. Accessing emergency resources...",
             variant: "destructive",
           });
+
+          // Send community alert
+          const alert: AlertNotification = {
+            id: new Date().toISOString(),
+            type: 'emergency',
+            title: 'SOS Activation',
+            body: 'An SOS has been activated by a community member. Please be vigilant.',
+            severity: 'critical',
+            timestamp: Date.now(),
+          };
+          notificationService.sendCommunityAlert(alert);
+
           if (navigate && isRouterReady) {
             navigate("/emergency");
           } else {
@@ -50,9 +72,14 @@ const PanicButton = () => {
         return prev - 1;
       });
     }, 1000);
+    setIntervalId(newIntervalId);
   };
 
   const handleCancel = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
     setIsPressed(false);
     setCountdown(0);
   };

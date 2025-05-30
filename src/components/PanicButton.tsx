@@ -1,0 +1,109 @@
+
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+const PanicButton = () => {
+  const [isPressed, setIsPressed] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handlePanicPress = () => {
+    if (isPressed) return;
+    
+    setIsPressed(true);
+    setCountdown(3);
+
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          // Trigger emergency protocol
+          toast({
+            title: "Emergency Alert Sent",
+            description: "Community has been notified. Accessing emergency resources...",
+            variant: "destructive",
+          });
+          navigate("/emergency");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleCancel = () => {
+    setIsPressed(false);
+    setCountdown(0);
+  };
+
+  return (
+    <div className="flex flex-col items-center space-y-2">
+      {isPressed && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center space-y-2"
+        >
+          <div className="text-white font-bold text-lg">{countdown}</div>
+          <Button
+            onClick={handleCancel}
+            variant="outline"
+            className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600"
+          >
+            Cancel
+          </Button>
+        </motion.div>
+      )}
+      
+      <motion.div
+        whileTap={{ scale: 0.95 }}
+        className="relative"
+      >
+        <Button
+          onClick={handlePanicPress}
+          disabled={isPressed}
+          className={`w-20 h-20 rounded-full shadow-2xl font-bold text-lg transition-all duration-300 ${
+            isPressed 
+              ? 'bg-red-800 text-white' 
+              : 'bg-red-600 hover:bg-red-700 text-white'
+          }`}
+        >
+          {isPressed ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <AlertTriangle className="w-8 h-8" />
+            </motion.div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <AlertTriangle className="w-6 h-6" />
+              <span className="text-xs">SOS</span>
+            </div>
+          )}
+        </Button>
+        
+        {!isPressed && (
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 bg-red-600/30 rounded-full -z-10"
+          />
+        )}
+      </motion.div>
+      
+      {!isPressed && (
+        <p className="text-xs text-gray-400 text-center max-w-20">
+          Emergency
+        </p>
+      )}
+    </div>
+  );
+};
+
+export default PanicButton;

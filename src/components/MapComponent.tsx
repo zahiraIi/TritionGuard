@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
@@ -645,7 +646,7 @@ const MapComponent = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline" 
-                      className="flex items-center space-x-2"
+                      className="flex items-center justify-center space-x-2"
                       onClick={() => {
                         if (map.current) {
                           map.current.flyTo({
@@ -657,11 +658,11 @@ const MapComponent = () => {
                         }
                       }}
                     >
-                      <MapPin className="w-4 h-4" />
+                      <Eye className="w-4 h-4" />
                       <span>View</span>
                     </Button>
                     <Button 
-                      className="bg-green-600 hover:bg-green-700 flex items-center space-x-2"
+                      className="bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-2"
                       onClick={() => showRoute(selectedZone)}
                       disabled={isNavigating}
                     >

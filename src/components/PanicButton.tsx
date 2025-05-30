@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +9,19 @@ import { useToast } from "@/hooks/use-toast";
 const PanicButton = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const navigate = useNavigate();
+  const [isRouterReady, setIsRouterReady] = useState(false);
   const { toast } = useToast();
+  
+  // Safely get navigate hook
+  let navigate;
+  try {
+    navigate = useNavigate();
+    useEffect(() => {
+      setIsRouterReady(true);
+    }, []);
+  } catch (error) {
+    console.log("Router not ready yet");
+  }
 
   const handlePanicPress = () => {
     if (isPressed) return;
@@ -28,7 +39,12 @@ const PanicButton = () => {
             description: "Community has been notified. Accessing emergency resources...",
             variant: "destructive",
           });
-          navigate("/emergency");
+          if (navigate && isRouterReady) {
+            navigate("/emergency");
+          } else {
+            // Fallback if navigation isn't available
+            window.location.href = "/emergency";
+          }
           return 0;
         }
         return prev - 1;

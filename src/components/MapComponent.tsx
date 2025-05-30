@@ -645,7 +645,7 @@ const MapComponent = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline" 
-                      className="flex items-center justify-center space-x-2 h-10 w-full"
+                      className="flex items-center justify-center space-x-1 h-10 text-sm border-gray-300 hover:bg-gray-50"
                       onClick={() => {
                         if (map.current) {
                           map.current.flyTo({
@@ -658,10 +658,10 @@ const MapComponent = () => {
                       }}
                     >
                       <Eye className="w-4 h-4" />
-                      <span>View</span>
+                      <span className="text-gray-700">View</span>
                     </Button>
                     <Button 
-                      className="bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-2 h-10 w-full"
+                      className="bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-1 h-10 text-sm"
                       onClick={() => showRoute(selectedZone)}
                       disabled={isNavigating}
                     >

@@ -24,8 +24,7 @@ const incidents = [
 const MapComponent = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
+  const [mapboxToken] = useState('pk.eyJ1IjoiemFsaTEiLCJhIjoiY21iYTdmMzQzMHlyaDJtb2RxM3hobGdvYSJ9.ps3ojvR2-xQopxq6NwRt4A');
 
   const initializeMap = (token: string) => {
     if (!mapRef.current) return;
@@ -99,78 +98,15 @@ const MapComponent = () => {
     });
   };
 
-  const handleTokenSubmit = () => {
-    if (mapboxToken.trim()) {
-      localStorage.setItem('mapbox_token', mapboxToken);
-      setShowTokenInput(false);
-      initializeMap(mapboxToken);
-    }
-  };
-
   useEffect(() => {
-    const savedToken = localStorage.getItem('mapbox_token');
-    if (savedToken) {
-      setMapboxToken(savedToken);
-      setShowTokenInput(false);
-      initializeMap(savedToken);
+    if (mapboxToken) {
+      initializeMap(mapboxToken);
     }
 
     return () => {
       map.current?.remove();
     };
-  }, []);
-
-  if (showTokenInput) {
-    return (
-      <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 p-8 rounded-xl shadow-xl max-w-md w-full mx-4"
-        >
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-white mb-2">Setup Map</h2>
-            <p className="text-gray-400 text-sm">
-              Enter your Mapbox public token to display the detailed campus map
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            <Input
-              type="text"
-              placeholder="pk.eyJ1Ijoi..."
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white"
-            />
-            <Button 
-              onClick={handleTokenSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={!mapboxToken.trim()}
-            >
-              Load Map
-            </Button>
-          </div>
-
-          <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-            <p className="text-xs text-gray-300">
-              Get your free token at{' '}
-              <a 
-                href="https://mapbox.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:underline"
-              >
-                mapbox.com
-              </a>
-              <br />
-              Look for "Access tokens" in your account dashboard.
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
+  }, [mapboxToken]);
 
   return (
     <div className="absolute inset-0">
@@ -193,23 +129,7 @@ const MapComponent = () => {
         </div>
       </div>
 
-      {/* Reset Token Button */}
-      <div className="absolute top-4 right-4 z-20">
-        <Button
-          onClick={() => {
-            localStorage.removeItem('mapbox_token');
-            setShowTokenInput(true);
-            map.current?.remove();
-          }}
-          variant="secondary"
-          size="sm"
-          className="bg-white/90 text-gray-800 hover:bg-white"
-        >
-          Change Token
-        </Button>
-      </div>
-
-      <style jsx>{`
+      <style>{`
         @keyframes pulse {
           0% {
             box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);

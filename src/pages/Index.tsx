@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -287,9 +286,7 @@ const Index = () => {
             transition={{ delay: 0.3 }}
             className="text-5xl font-black text-gray-900 mb-4 leading-tight tracking-tight"
           >
-            All Your Safety in
-            <br />
-            <span className="text-5xl font-black text-gray-900">TritonGuard</span>
+            TritonGuard
           </motion.h1>
         </motion.div>
       </div>

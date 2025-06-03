@@ -252,20 +252,20 @@ const MapView = () => {
         </motion.div>
       )}
 
-      {/* Bottom Action Bar (SOS, Add Report, Navigate) */}
+      {/* Bottom Action Bar - Vertical Layout */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }} 
-        className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-4"
+        className="absolute bottom-4 right-4 z-20"
       >
-        <div className="flex items-center justify-around max-w-md mx-auto">
-          {/* Navigate to Safe Zone Button (Left) */}
+        <div className="flex flex-col items-center space-y-3">
+          {/* Navigate to Safe Zone Button */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-col items-center space-y-1"
+            className="flex flex-col items-center"
           >
             <Button
               onClick={() => {
@@ -273,36 +273,35 @@ const MapView = () => {
                   title: "Finding nearest safe zone",
                   description: "Calculating route to closest safe location...",
                 });
-                // Logic to call MapComponent's find nearest safe zone would go here
               }}
-              className="bg-green-600 hover:bg-green-700 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
-              size="icon"
+              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
+              size="sm"
             >
-              <Navigation className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Navigation className="w-4 h-4" />
             </Button>
-            <span className="text-xs text-black font-medium">Safe Zone</span>
+            <span className="text-xs text-white font-medium mt-1">Safe Zone</span>
           </motion.div>
 
-          {/* Panic Button (Center) */}
-          <div className="scale-100">
-            <PanicButton /> {/* PanicButton already has some bottom margin/text if not pressed */}
+          {/* Panic Button */}
+          <div className="scale-75">
+            <PanicButton />
           </div>
 
-          {/* Add Report Button (Right) */}
+          {/* Add Report Button */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
-            className="flex flex-col items-center space-y-1"
+            className="flex flex-col items-center"
           >
             <Button
               onClick={() => navigate("/report")}
-              className="bg-red-600 hover:bg-red-700 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
-              size="icon"
+              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
+              size="sm"
             >
-              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
+              <AlertTriangle className="w-4 h-4" />
             </Button>
-            <span className="text-xs text-black font-medium">Add Report</span>
+            <span className="text-xs text-white font-medium mt-1">Report</span>
           </motion.div>
         </div>
       </motion.div>
@@ -317,22 +316,22 @@ const MapView = () => {
         <Button
           size="sm"
           variant="secondary"
-          className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-white shadow-lg"
+          className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-white shadow-lg"
           onClick={() => navigate('/emergency')}
         >
-          <Phone className="w-5 h-5" />
+          <Phone className="w-4 h-4" />
         </Button>
         
         <Button
           size="sm"
           variant="secondary"
-          className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-700 text-white border-2 border-white shadow-lg"
+          className="w-10 h-10 rounded-full bg-green-600 hover:bg-green-700 text-white border-2 border-white shadow-lg"
           onClick={() => {
             // Find nearest safe zone and zoom to it
             window.dispatchEvent(new CustomEvent('findNearestSafeZone'));
           }}
         >
-          <Shield className="w-5 h-5" />
+          <Shield className="w-4 h-4" />
         </Button>
       </motion.div>
 

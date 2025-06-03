@@ -150,35 +150,6 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Emergency quick access */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="px-6 pb-8"
-      >
-        <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
-                <Phone className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-red-900">Need Help Now?</h4>
-                <p className="text-sm text-red-700">Emergency support available 24/7</p>
-              </div>
-            </div>
-            <Button
-              onClick={() => navigate("/emergency")}
-              variant="outline"
-              className="border-red-200 text-red-700 hover:bg-red-100 px-4 py-2 text-sm"
-            >
-              Emergency
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Bottom safe area */}
       <div className="h-8"></div>
     </div>

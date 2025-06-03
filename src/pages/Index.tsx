@@ -32,7 +32,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header with modern map illustration */}
       <div className="bg-white px-6 pt-16 pb-8">
         <motion.div
@@ -41,59 +41,47 @@ const Index = () => {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          {/* Modern map illustration with guard emoji */}
+          {/* Modern clean map illustration */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-8"
+            className="mb-12"
           >
-            <div className="w-72 h-48 mx-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-3xl flex items-center justify-center relative overflow-hidden border border-blue-100">
-              {/* Map grid background */}
+            <div className="w-80 h-64 mx-auto bg-gray-900 rounded-3xl flex items-center justify-center relative overflow-hidden">
+              {/* Subtle grid pattern */}
               <div className="absolute inset-0">
-                <svg width="100%" height="100%" className="opacity-20">
+                <svg width="100%" height="100%" className="opacity-10">
                   <defs>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#3b82f6" strokeWidth="0.5"/>
+                    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#ffffff" strokeWidth="0.5"/>
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#grid)" />
                 </svg>
               </div>
               
-              {/* Map elements */}
+              {/* Map elements - clean and minimal */}
               <div className="absolute inset-0 flex items-center justify-center">
-                {/* Roads/paths */}
-                <svg width="280" height="180" className="absolute">
-                  <path d="M50 90 Q140 60 230 90" stroke="#6366f1" strokeWidth="3" fill="none" className="opacity-40"/>
-                  <path d="M80 120 Q180 100 250 130" stroke="#8b5cf6" strokeWidth="2" fill="none" className="opacity-30"/>
-                  <path d="M30 140 Q120 160 200 140" stroke="#06b6d4" strokeWidth="2" fill="none" className="opacity-30"/>
-                </svg>
+                {/* Simplified location areas */}
+                <div className="absolute top-16 left-12 w-16 h-12 bg-blue-500/30 rounded-xl"></div>
+                <div className="absolute top-20 right-16 w-20 h-8 bg-purple-500/20 rounded-lg"></div>
+                <div className="absolute bottom-20 left-16 w-12 h-16 bg-green-500/25 rounded-xl"></div>
+                <div className="absolute bottom-16 right-12 w-18 h-10 bg-red-500/20 rounded-lg"></div>
                 
-                {/* Location pins */}
-                <div className="absolute top-12 left-16 w-3 h-3 bg-red-500 rounded-full shadow-lg"></div>
-                <div className="absolute top-20 right-20 w-2 h-2 bg-green-500 rounded-full shadow-lg"></div>
-                <div className="absolute bottom-16 left-20 w-2 h-2 bg-blue-500 rounded-full shadow-lg"></div>
-                <div className="absolute bottom-12 right-16 w-3 h-3 bg-purple-500 rounded-full shadow-lg"></div>
+                {/* Clean location pins */}
+                <div className="absolute top-20 left-16 w-3 h-3 bg-blue-400 rounded-full shadow-lg"></div>
+                <div className="absolute top-24 right-20 w-2.5 h-2.5 bg-purple-400 rounded-full shadow-lg"></div>
+                <div className="absolute bottom-24 left-20 w-2.5 h-2.5 bg-green-400 rounded-full shadow-lg"></div>
+                <div className="absolute bottom-20 right-16 w-3 h-3 bg-red-400 rounded-full shadow-lg"></div>
               </div>
               
-              {/* Central guard emoji with shield background */}
-              <div className="relative z-10 w-24 h-24 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg border border-white/50">
+              {/* Central guard element - clean and prominent */}
+              <div className="relative z-10 w-20 h-20 bg-white/95 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-xl">
                 <div className="text-center">
-                  <div className="text-3xl mb-1">🛡️</div>
-                  <Shield className="w-4 h-4 text-blue-600 mx-auto" />
+                  <div className="text-2xl mb-1">🛡️</div>
+                  <div className="w-4 h-0.5 bg-gray-400 mx-auto"></div>
                 </div>
-              </div>
-              
-              {/* Floating safety indicators */}
-              <div className="absolute top-8 left-12 w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Users className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="absolute bottom-10 right-12 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <MapPin className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="absolute top-12 right-8 w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Lock className="w-3 h-3 text-purple-600" />
               </div>
             </div>
           </motion.div>

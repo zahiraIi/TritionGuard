@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -291,22 +292,22 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Features section matching screenshot design */}
-      <div className="px-6 py-8 space-y-4">
+      {/* Features section with improved mobile spacing */}
+      <div className="px-6 py-12 space-y-8">
         {features.map((feature, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 + index * 0.1 }}
-            className="bg-gray-50 rounded-2xl p-4 flex items-start space-x-4"
+            className="bg-gray-50 rounded-3xl p-6 flex items-center space-x-6"
           >
-            <div className={`w-12 h-12 ${feature.bgColor} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-              <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
+            <div className={`w-16 h-16 ${feature.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm`}>
+              <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{feature.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-gray-600 text-base leading-relaxed">{feature.description}</p>
             </div>
           </motion.div>
         ))}

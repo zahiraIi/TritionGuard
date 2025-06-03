@@ -181,4 +181,6 @@ For technical support or community access codes, contact your local student orga
 
 ---
 
-**Disclaimer**: This app is designed for community safety and educational purposes. Users should always comply with local laws and university policies. The app does not replace professional legal advice or emergency services.
+© Zahir - Creating a safe space for students at risk of deportation
+
+

@@ -17,7 +17,7 @@ const Index = () => {
     },
     {
       icon: Users,
-      title: "Community Support",
+      title: "Community Support", 
       description: "Connect instantly with fellow students for real-time safety alerts and assistance.",
       bgColor: "bg-green-50",
       iconColor: "text-green-500"
@@ -41,14 +41,14 @@ const Index = () => {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          {/* Interactive Dark Map Component */}
+          {/* Interactive Dark Map Component - Full Width */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-12"
+            className="mb-12 -mx-6"
           >
-            <div className="w-80 h-64 mx-auto bg-gray-900 rounded-3xl relative overflow-hidden shadow-2xl">
+            <div className="w-full h-64 bg-gray-900 relative overflow-hidden">
               {/* Map Content */}
               <div className="absolute inset-0">
                 {/* Street Network */}
@@ -205,34 +205,25 @@ const Index = () => {
             <br />
             <span className="text-5xl font-black text-gray-900">TritonGuard</span>
           </motion.h1>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-xl font-medium text-gray-600 leading-relaxed max-w-md mx-auto"
-          >
-            Your comprehensive safety network designed for student protection and community support
-          </motion.p>
         </motion.div>
       </div>
 
-      {/* Features section with updated typography */}
-      <div className="px-6 py-8 space-y-6">
+      {/* Features section matching screenshot design */}
+      <div className="px-6 py-8 space-y-4">
         {features.map((feature, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 + index * 0.1 }}
-            className="flex items-start space-x-4"
+            className="bg-gray-50 rounded-2xl p-4 flex items-start space-x-4"
           >
             <div className={`w-12 h-12 ${feature.bgColor} rounded-2xl flex items-center justify-center flex-shrink-0`}>
               <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
             </div>
-            <div className="flex-1 pt-1">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600 font-medium leading-relaxed">{feature.description}</p>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{feature.title}</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
             </div>
           </motion.div>
         ))}

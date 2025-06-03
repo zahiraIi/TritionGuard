@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Geolocation } from '@capacitor/geolocation';
 import NotificationService, { AlertNotification } from "@/services/NotificationService";
 
 const PanicButton = () => {
@@ -12,6 +14,7 @@ const PanicButton = () => {
   const [countdown, setCountdown] = useState(0);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [isRouterReady, setIsRouterReady] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const { toast } = useToast();
   const notificationService = NotificationService.getInstance();
   
@@ -21,10 +24,30 @@ const PanicButton = () => {
     navigate = useNavigate();
     useEffect(() => {
       setIsRouterReady(true);
+      // Get user location when component mounts
+      getCurrentLocation();
     }, []);
   } catch (error) {
     console.log("Router not ready yet");
   }
+
+  const getCurrentLocation = async () => {
+    try {
+      const coordinates = await Geolocation.getCurrentPosition();
+      setUserLocation({
+        lat: coordinates.coords.latitude,
+        lng: coordinates.coords.longitude
+      });
+      console.log('User location obtained:', coordinates.coords.latitude, coordinates.coords.longitude);
+    } catch (error) {
+      console.log('Could not get user location:', error);
+      // Fallback to UCSD campus center if geolocation fails
+      setUserLocation({
+        lat: 32.8801,
+        lng: -117.2340
+      });
+    }
+  };
 
   const handlePanicPress = async () => {
     if (isPressed) return;
@@ -50,7 +73,7 @@ const PanicButton = () => {
             variant: "destructive",
           });
 
-          // Send community alert
+          // Send community alert with location
           const alert: AlertNotification = {
             id: new Date().toISOString(),
             type: 'emergency',
@@ -58,8 +81,32 @@ const PanicButton = () => {
             body: 'An SOS has been activated by a community member. Please be vigilant.',
             severity: 'critical',
             timestamp: Date.now(),
+            location: userLocation ? {
+              lat: userLocation.lat,
+              lng: userLocation.lng,
+              address: 'Current Location'
+            } : undefined
           };
+          
+          console.log('Sending emergency alert with location:', alert);
           notificationService.sendCommunityAlert(alert);
+
+          // Also dispatch a custom event to add the emergency to the map
+          if (userLocation) {
+            window.dispatchEvent(new CustomEvent('addEmergencyIncident', {
+              detail: {
+                id: `emergency_${Date.now()}`,
+                lat: userLocation.lat,
+                lng: userLocation.lng,
+                type: 'emergency',
+                severity: 'critical',
+                time: 'Now',
+                description: 'SOS Emergency Alert',
+                verified: true,
+                reports: 1
+              }
+            }));
+          }
 
           if (navigate && isRouterReady) {
             navigate("/emergency");

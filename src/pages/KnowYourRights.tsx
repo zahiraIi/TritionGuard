@@ -241,39 +241,42 @@ const KnowYourRights = () => {
 
         {/* UCSD Legal Resources */}
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900 px-1">UCSD Legal Resources</h3>
+          <h3 className="font-semibold text-gray-900 text-center">UCSD Legal Resources</h3>
           
-          {emergencyContacts.map((contact, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 + index * 0.1 }}
-            >
-              <Button
-                onClick={() => {
-                  if (contact.phone) {
-                    window.open(`tel:${contact.phone}`, '_self');
-                  }
-                }}
-                className="w-full bg-white hover:bg-gray-50 text-left p-4 rounded-2xl border border-gray-100 shadow-sm h-auto"
-                variant="ghost"
+          <div className="flex flex-col items-center space-y-3">
+            {emergencyContacts.map((contact, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+                className="w-full max-w-md"
               >
-                <div className="flex items-center space-x-4">
-                  <div className={`w-10 h-10 ${contact.color} rounded-full flex items-center justify-center`}>
-                    <Phone className="w-4 h-4 text-white" />
+                <Button
+                  onClick={() => {
+                    if (contact.phone) {
+                      window.open(`tel:${contact.phone}`, '_self');
+                    }
+                  }}
+                  className="w-full bg-white hover:bg-gray-50 text-left p-4 rounded-2xl border border-gray-100 shadow-sm h-auto"
+                  variant="ghost"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-10 h-10 ${contact.color} rounded-full flex items-center justify-center`}>
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 text-center">
+                      <div className="font-medium text-gray-900">{contact.name}</div>
+                      <div className="text-sm text-gray-600">{contact.contact}</div>
+                      {contact.phone && (
+                        <div className="text-sm text-gray-500">{contact.phone}</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 text-left">
-                    <div className="font-medium text-gray-900">{contact.name}</div>
-                    <div className="text-sm text-gray-600">{contact.contact}</div>
-                    {contact.phone && (
-                      <div className="text-sm text-gray-500">{contact.phone}</div>
-                    )}
-                  </div>
-                </div>
-              </Button>
-            </motion.div>
-          ))}
+                </Button>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* Important Note for International Students */}

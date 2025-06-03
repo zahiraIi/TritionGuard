@@ -1,6 +1,6 @@
 # TritionGuard 🛡️
 
-A mobile safety app designed specifically for undocumented students and students at risk of deportation. TritionGuard provides anonymous community reporting, real-time alerts, and emergency resources to help keep vulnerable students safe.
+A mobile safety app designed specifically for undocumented students and students at risk of deportation built for my CCE 1 final project. TritionGuard provides anonymous community reporting, real-time alerts, and emergency resources to help keep vulnerable students safe.
 
 ## 🌟 Features
 

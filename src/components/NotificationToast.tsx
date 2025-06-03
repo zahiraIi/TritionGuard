@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X, Shield, Heart } from 'lucide-react';
@@ -92,7 +93,7 @@ const NotificationToast = () => {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div className="fixed top-4 left-4 right-4 z-50 space-y-2 max-w-sm mx-auto sm:left-auto sm:right-4 sm:mx-0">
       <AnimatePresence>
         {notifications.map((notification) => (
           <motion.div
@@ -101,11 +102,11 @@ const NotificationToast = () => {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 300, scale: 0.8 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className={`p-4 rounded-lg border-l-4 shadow-lg backdrop-blur-sm cursor-pointer ${getSeverityColor(notification.severity)}`}
+            className={`p-4 rounded-lg border-l-4 shadow-lg backdrop-blur-sm cursor-pointer mx-2 sm:mx-0 ${getSeverityColor(notification.severity)}`}
             onClick={() => handleNotificationClick(notification)}
           >
             <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 flex-1 min-w-0">
                 <div className="flex-shrink-0 mt-0.5">
                   {getNotificationIcon(notification.type)}
                 </div>
@@ -113,11 +114,11 @@ const NotificationToast = () => {
                   <h4 className="text-sm font-semibold truncate">
                     {notification.title}
                   </h4>
-                  <p className="text-sm mt-1 opacity-90">
+                  <p className="text-sm mt-1 opacity-90 break-words">
                     {notification.body}
                   </p>
                   {notification.location && (
-                    <p className="text-xs mt-2 opacity-75">
+                    <p className="text-xs mt-2 opacity-75 truncate">
                       📍 {notification.location.address}
                     </p>
                   )}
@@ -129,7 +130,7 @@ const NotificationToast = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-shrink-0 h-6 w-6 opacity-60 hover:opacity-100"
+                className="flex-shrink-0 h-6 w-6 opacity-60 hover:opacity-100 ml-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeNotification(notification.id);
@@ -145,4 +146,4 @@ const NotificationToast = () => {
   );
 };
 
-export default NotificationToast; 
+export default NotificationToast;

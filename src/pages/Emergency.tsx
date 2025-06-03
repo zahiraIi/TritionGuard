@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +11,12 @@ const Emergency = () => {
   const [alertSent, setAlertSent] = useState(false);
 
   const emergencyContacts = [
-    { name: "Legal Aid Hotline", number: "1-800-LEGAL-AID", type: "legal" },
-    { name: "Immigration Lawyer", number: "1-858-555-HELP", type: "legal" },
-    { name: "Student Support", number: "1-858-555-UCSD", type: "support" },
-    { name: "Community Organizer", number: "1-858-555-COMM", type: "community" }
+    { name: "Legal Aid Hotline", number: "1-800-839-8682", type: "legal" },
+    { name: "Immigration Legal Services", number: "(619) 232-2121", type: "legal" },
+    { name: "SPACES @ UCSD", number: "(858) 534-4777", type: "support" },
+    { name: "UCSD Police (Non-Emergency)", number: "(858) 534-4357", type: "safety" },
+    { name: "Crisis Text Line", number: "Text HOME to 741741", type: "crisis" },
+    { name: "San Diego County Crisis Line", number: "(888) 724-7240", type: "crisis" }
   ];
 
   const handleCall = (number: string, name: string) => {

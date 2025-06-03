@@ -1,13 +1,16 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, MapPin, AlertTriangle, Clock, Image, Trash } from "lucide-react";
+import { ArrowLeft, Camera, MapPin, AlertTriangle, Clock, Image, Trash, Crosshair } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CameraService, { IncidentPhoto } from "@/services/CameraService";
 import NotificationService from "@/services/NotificationService";
 import { Geolocation } from '@capacitor/geolocation';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { cn } from "@/lib/utils";
 
 const ReportIncident = () => {
   const navigate = useNavigate();
@@ -15,10 +18,16 @@ const ReportIncident = () => {
   const [searchParams] = useSearchParams();
   const reportType = searchParams.get('type') || 'general';
   const [description, setDescription] = useState('');
-  const [severity, setSeverity] = useState('medium');
+  const [severity, setSeverity] = useState('general');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photos, setPhotos] = useState<IncidentPhoto[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showMapSelector, setShowMapSelector] = useState(false);
+  
+  const mapRef = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const marker = useRef<mapboxgl.Marker | null>(null);
 
   const cameraService = CameraService.getInstance();
   const notificationService = NotificationService.getInstance();
@@ -26,7 +35,16 @@ const ReportIncident = () => {
   useEffect(() => {
     // Get current location when component mounts
     getCurrentLocation();
-  }, []);
+    
+    // Set default severity based on report type
+    if (reportType === 'ice') {
+      setSeverity('ice');
+    } else if (reportType === 'police') {
+      setSeverity('police');
+    } else {
+      setSeverity('general');
+    }
+  }, [reportType]);
 
   const getCurrentLocation = async () => {
     try {
@@ -34,20 +52,97 @@ const ReportIncident = () => {
         enableHighAccuracy: true,
         timeout: 10000,
       });
-      setCurrentLocation({
+      const location = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
-      });
+      };
+      setCurrentLocation(location);
+      setSelectedLocation(location); // Default to current location
     } catch (error) {
       console.warn('Could not get current location:', error);
+      // Fallback to UCSD campus center
+      const fallbackLocation = { lat: 32.8801, lng: -117.2340 };
+      setCurrentLocation(fallbackLocation);
+      setSelectedLocation(fallbackLocation);
     }
   };
 
+  const initializeMapSelector = () => {
+    if (!mapRef.current || !currentLocation) return;
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiemFsaTEiLCJhIjoiY21iYTdmMzQzMHlyaDJtb2RxM3hobGdvYSJ9.ps3ojvR2-xQopxq6NwRt4A';
+
+    map.current = new mapboxgl.Map({
+      container: mapRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [selectedLocation?.lng || currentLocation.lng, selectedLocation?.lat || currentLocation.lat],
+      zoom: 16
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Create marker for incident location
+    const el = document.createElement('div');
+    el.className = 'incident-location-marker';
+    el.innerHTML = `
+      <div style="
+        width: 20px;
+        height: 20px;
+        background-color: #dc2626;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        cursor: grab;
+      "></div>
+    `;
+
+    marker.current = new mapboxgl.Marker({
+      element: el,
+      draggable: true
+    })
+      .setLngLat([selectedLocation?.lng || currentLocation.lng, selectedLocation?.lat || currentLocation.lat])
+      .addTo(map.current);
+
+    // Update selected location when marker is dragged
+    marker.current.on('dragend', () => {
+      const lngLat = marker.current?.getLngLat();
+      if (lngLat) {
+        setSelectedLocation({
+          lat: lngLat.lat,
+          lng: lngLat.lng
+        });
+      }
+    });
+
+    // Allow clicking on map to set location
+    map.current.on('click', (e) => {
+      const location = {
+        lat: e.lngLat.lat,
+        lng: e.lngLat.lng
+      };
+      setSelectedLocation(location);
+      marker.current?.setLngLat([location.lng, location.lat]);
+    });
+  };
+
+  useEffect(() => {
+    if (showMapSelector) {
+      setTimeout(() => {
+        initializeMapSelector();
+      }, 100);
+    }
+    
+    return () => {
+      map.current?.remove();
+    };
+  }, [showMapSelector, currentLocation]);
+
   const severityOptions = [
-    { value: 'low', label: 'Low Priority', color: 'bg-yellow-500' },
-    { value: 'medium', label: 'Medium Priority', color: 'bg-orange-500' },
-    { value: 'high', label: 'High Priority', color: 'bg-red-500' },
-    { value: 'critical', label: 'Critical - Immediate Danger', color: 'bg-red-700' }
+    { value: 'police', label: 'Police Activity', color: 'bg-orange-500', hoverColor: 'hover:bg-orange-600', description: 'Police presence or enforcement activity' },
+    { value: 'ice', label: 'ICE Activity - Critical', color: 'bg-red-700', hoverColor: 'hover:bg-red-800', description: 'Immigration enforcement - immediate danger' },
+    { value: 'general', label: 'General Safety Concern', color: 'bg-yellow-500', hoverColor: 'hover:bg-yellow-600', description: 'Other safety-related incidents' },
+    { value: 'emergency', label: 'Emergency Situation', color: 'bg-red-500', hoverColor: 'hover:bg-red-600', description: 'Immediate help needed' }
   ];
 
   const handleTakePhoto = async () => {
@@ -99,47 +194,90 @@ const ReportIncident = () => {
     try {
       // Create incident report
       const incidentId = `incident_${Date.now()}`;
+      const reportLocation = selectedLocation || currentLocation;
       
-      // Send community alert
-      await notificationService.sendCommunityAlert({
-        id: incidentId,
-        type: reportType as any,
-        title: getReportTypeInfo(reportType).title,
-        body: description || `${getReportTypeInfo(reportType).title} reported in your area`,
-        location: currentLocation ? {
-          lat: currentLocation.lat,
-          lng: currentLocation.lng,
-          address: 'UCSD Campus'
-        } : undefined,
-        severity: severity as any,
-        timestamp: Date.now(),
-      });
+      if (!reportLocation) {
+        toast({
+          title: "Location required",
+          description: "Please allow location access or select a location on the map.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-      // Store incident locally
+      // Create new incident for the map
+      const newIncident = {
+        id: incidentId,
+        lat: reportLocation.lat,
+        lng: reportLocation.lng,
+        type: reportType,
+        severity: severity,
+        time: "Just now",
+        description: description || `${getReportTypeInfo(reportType).title} reported`,
+        verified: false,
+        reports: 1,
+        timestamp: Date.now()
+      };
+
+      console.log('Submitting new incident:', newIncident);
+
+      // Store incident locally for the map FIRST
       const incidents = JSON.parse(localStorage.getItem('trition_incidents') || '[]');
-      incidents.push({
+      incidents.push(newIncident);
+      localStorage.setItem('trition_incidents', JSON.stringify(incidents));
+      console.log('Incident stored locally:', incidents.length, 'total incidents');
+
+      // Store report details
+      const reports = JSON.parse(localStorage.getItem('trition_reports') || '[]');
+      reports.push({
         id: incidentId,
         type: reportType,
         description,
         severity,
         photos: photos.map(p => p.id),
-        location: currentLocation,
+        location: reportLocation,
         timestamp: Date.now(),
       });
-      localStorage.setItem('trition_incidents', JSON.stringify(incidents));
+      localStorage.setItem('trition_reports', JSON.stringify(reports));
 
-      toast({
-        title: "Report submitted successfully",
-        description: "Community members have been alerted. Stay safe.",
+      // Send community alert with enhanced notification
+      await notificationService.sendCommunityAlert({
+        id: incidentId,
+        type: reportType as any,
+        title: `${getReportTypeInfo(reportType).title} Alert`,
+        body: description || `${getReportTypeInfo(reportType).title} reported in your area. Stay alert and be safe.`,
+        location: {
+          lat: reportLocation.lat,
+          lng: reportLocation.lng,
+          address: 'UCSD Campus Area'
+        },
+        severity: severity as any,
+        timestamp: Date.now(),
       });
-      
+
+      // Trigger a custom event to update the map IMMEDIATELY
+      console.log('Dispatching newIncidentReported event');
+      window.dispatchEvent(new CustomEvent('newIncidentReported', { 
+        detail: newIncident 
+      }));
+
+      // Show immediate success feedback
+      toast({
+        title: "Report submitted successfully! 🚨",
+        description: "Community members have been alerted. Your report is now visible on the map.",
+      });
+
+      // Add a small delay to ensure the map updates before navigation
       setTimeout(() => {
         navigate("/map");
-      }, 1500);
+      }, 2000);
+      
     } catch (error) {
+      console.error('Error submitting report:', error);
       toast({
         title: "Submission failed",
-        description: "Could not submit report. Please try again.",
+        description: "Could not submit report. Please check your connection and try again.",
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -215,47 +353,112 @@ const ReportIncident = () => {
             </div>
           </div>
 
-          {/* Current Location */}
-          {currentLocation && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10"
-            >
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-5 h-5 text-green-400" />
-                <div>
-                  <p className="font-medium">Current Location</p>
-                  <p className="text-sm text-gray-300">
-                    {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)}
-                  </p>
+          {/* Location Selection */}
+          <div className="space-y-4">
+            <label className="text-lg font-semibold">Incident Location</label>
+            
+            {selectedLocation && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-green-400" />
+                    <div>
+                      <p className="font-medium">Selected Location</p>
+                      <p className="text-sm text-gray-300">
+                        {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowMapSelector(!showMapSelector)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
+                  >
+                    <Crosshair className="w-4 h-4 mr-2" />
+                    {showMapSelector ? 'Hide Map' : 'Select on Map'}
+                  </Button>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+
+            {/* Map Selector */}
+            {showMapSelector && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 300 }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden"
+              >
+                <div className="p-4">
+                  <p className="text-sm text-gray-300 mb-3">
+                    Drag the red marker or click anywhere on the map to set the incident location
+                  </p>
+                  <div ref={mapRef} className="w-full h-64 rounded-lg overflow-hidden" />
+                </div>
+              </motion.div>
+            )}
+          </div>
 
           {/* Severity Selection */}
           <div className="space-y-3">
-            <label className="text-lg font-semibold">Severity Level</label>
-            <div className="grid grid-cols-2 gap-3">
-              {severityOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSeverity(option.value)}
-                  variant={severity === option.value ? "default" : "outline"}
-                  className={`p-4 text-left ${
-                    severity === option.value 
-                      ? `${option.color} text-white` 
-                      : 'bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
-                    <span className="font-medium">{option.label}</span>
-                  </div>
-                </Button>
-              ))}
+            <label className="text-lg font-semibold">Incident Type & Priority</label>
+            
+            {severity === 'ice' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-900/30 border border-red-500/50 rounded-lg p-3 flex items-center space-x-3"
+              >
+                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <div className="text-sm">
+                  <div className="font-medium text-red-200">Critical Priority Selected</div>
+                  <div className="text-red-300">This report will be marked as immediate danger and sent with highest priority to the community.</div>
+                </div>
+              </motion.div>
+            )}
+            
+            <div className="grid grid-cols-1 gap-2.5">
+              {severityOptions.map((option) => {
+                const isSelected = severity === option.value;
+                return (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSeverity(option.value)}
+                    variant="ghost"
+                    className={cn(
+                      "w-full h-auto p-3 text-left rounded-lg transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 justify-start",
+                      isSelected
+                        ? `${option.color} ${option.hoverColor} text-white border-transparent focus-visible:ring-white`
+                        : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:border-slate-600 focus-visible:ring-slate-400"
+                    )}
+                  >
+                    <div className="flex items-center w-full">
+                      <div className={cn("w-2.5 h-2.5 rounded-full mr-3 flex-shrink-0", option.color)}></div>
+                      <div className="flex-1">
+                        <p className={cn(
+                          "font-medium text-sm",
+                          isSelected ? "text-white" : "text-slate-100"
+                        )}>
+                          {option.label}
+                        </p>
+                        <p className={cn(
+                          "text-xs mt-0.5",
+                          isSelected ? "text-white/80" : "text-slate-400"
+                        )}>
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
@@ -267,19 +470,19 @@ const ReportIncident = () => {
               <Button
                 type="button"
                 onClick={handleTakePhoto}
-                className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl flex flex-col items-center space-y-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white py-6 px-4 rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[80px]"
               >
-                <Camera className="w-6 h-6" />
-                <span>Take Photo</span>
+                <Camera className="w-6 h-6 flex-shrink-0" />
+                <span className="text-sm font-medium">Take Photo</span>
               </Button>
               
               <Button
                 type="button"
                 onClick={handleSelectFromGallery}
-                className="bg-gray-600 hover:bg-gray-700 text-white p-4 rounded-xl flex flex-col items-center space-y-2"
+                className="bg-gray-600 hover:bg-gray-700 text-white py-6 px-4 rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[80px]"
               >
-                <Image className="w-6 h-6" />
-                <span>From Gallery</span>
+                <Image className="w-6 h-6 flex-shrink-0" />
+                <span className="text-sm font-medium">From Gallery</span>
               </Button>
             </div>
 

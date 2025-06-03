@@ -4,7 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Shield, Clock, Users, Phone, Heart, BookOpen, Building, AlertTriangle, Navigation, MapPin, Route, Timer, Footprints, Compass, ArrowUp, ArrowRight, ArrowLeft, RotateCcw, Eye, Navigation2 } from 'lucide-react';
+import { Shield, Clock, Users, Phone, Heart, BookOpen, Building, AlertTriangle, Navigation, MapPin, Route, Timer, Footprints, Compass, ArrowUp, ArrowRight, ArrowLeft, RotateCcw, Eye, Navigation2, X } from 'lucide-react';
 
 // Enhanced safe zones with detailed information - ALL GREEN COLORS
 const safeZones = [
@@ -85,18 +85,18 @@ const safeZones = [
   },
   {
     id: 7,
-    name: "Price Center",
+    name: "SPACES @ UCSD",
     lat: 32.8799,
     lng: -117.2362,
-    type: "public",
+    type: "support",
     emoji: "🏢",
-    description: "Main student hub with multiple services and security",
-    hours: "6:00 AM - 2:00 AM",
-    capacity: "Very High",
-    services: ["Food Court", "Student Services", "Security"],
-    phone: "(858) 534-4090",
-    safetyLevel: "High",
-    color: "#34d399" // Light green for public
+    description: "Undocumented student services, resources, and safe space support",
+    hours: "9:00 AM - 5:00 PM",
+    capacity: "High",
+    services: ["Undocumented Student Services", "Academic Support", "Community Resources", "Legal Resources"],
+    phone: "(858) 534-4777",
+    safetyLevel: "Very High",
+    color: "#10b981" // Medium green for support
   },
   {
     id: 8,
@@ -151,6 +151,138 @@ const MapComponent = () => {
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
   const [routeData, setRouteData] = useState<any>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [dynamicIncidents, setDynamicIncidents] = useState<any[]>([]);
+
+  const incidentMarkers = useRef<mapboxgl.Marker[]>([]);
+
+  // Load stored incidents from localStorage
+  const loadStoredIncidents = () => {
+    try {
+      const storedIncidents = JSON.parse(localStorage.getItem('trition_incidents') || '[]');
+      console.log('Loading stored incidents:', storedIncidents);
+      setDynamicIncidents(storedIncidents);
+      return storedIncidents;
+    } catch (error) {
+      console.error('Error loading stored incidents:', error);
+      return [];
+    }
+  };
+
+  // Add incident marker to map
+  const addIncidentMarker = (incident: any) => {
+    if (!map.current) return;
+
+    console.log('Adding incident marker:', incident);
+
+    const el = document.createElement('div');
+    el.className = 'incident-marker enhanced';
+    
+    // Map severity to colors and display info
+    const getSeverityInfo = (severity: string, type: string) => {
+      switch (severity) {
+        case 'ice':
+          return { color: '#dc2626', emoji: '🚨', displayName: 'ICE Activity - Critical' };
+        case 'police':
+          return { color: '#f59e0b', emoji: '👮‍♂️', displayName: 'Police Activity' };
+        case 'emergency':
+          return { color: '#ef4444', emoji: '🚨', displayName: 'Emergency Situation' };
+        case 'general':
+          return { color: '#6366f1', emoji: '⚠️', displayName: 'General Safety Concern' };
+        default:
+          // Fallback for legacy severity values or incident type
+          if (type === 'ice') return { color: '#dc2626', emoji: '🚨', displayName: 'ICE Activity' };
+          if (type === 'police') return { color: '#f59e0b', emoji: '👮‍♂️', displayName: 'Police Activity' };
+          return { color: '#6366f1', emoji: '⚠️', displayName: 'Safety Incident' };
+      }
+    };
+
+    const severityInfo = getSeverityInfo(incident.severity, incident.type);
+    
+    el.innerHTML = `
+      <div style="position: relative;">
+        <div style="
+          width: 24px;
+          height: 24px;
+          background-color: ${severityInfo.color};
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          cursor: pointer;
+          transition: transform 0.2s;
+          z-index: 10;
+        " onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-color: ${severityInfo.color}30;
+            border-radius: 50%;
+            top: -12px;
+            left: -12px;
+            animation: incidentPulse 2s infinite;
+            z-index: -1;
+          "></div>
+        </div>
+      </div>
+    `;
+
+    // Create popup for incident details
+    const popup = new mapboxgl.Popup({ 
+      offset: 25,
+      closeButton: false,
+      className: 'incident-popup'
+    }).setHTML(
+      `<div style="color: black; padding: 10px; min-width: 200px;">
+         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+           <span style="font-size: 18px;">${severityInfo.emoji}</span>
+           <div style="font-weight: bold; font-size: 14px; color: ${severityInfo.color};">
+             ${severityInfo.displayName}
+           </div>
+         </div>
+         <div style="color: #666; font-size: 12px; margin-bottom: 6px;">
+           ${incident.description || 'No description provided'}
+         </div>
+         <div style="display: flex; justify-content: space-between; font-size: 11px;">
+           <span style="color: #666;">⏰ ${incident.time}</span>
+           <span style="color: #666;">📊 ${incident.reports || 1} report${(incident.reports || 1) > 1 ? 's' : ''}</span>
+         </div>
+         ${incident.verified ? '<div style="margin-top: 4px; color: #10b981; font-size: 10px;">✅ Verified</div>' : ''}
+       </div>`
+    );
+
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([incident.lng, incident.lat])
+      .setPopup(popup)
+      .addTo(map.current);
+
+    // Store marker reference for cleanup
+    incidentMarkers.current.push(marker);
+  };
+
+  // Clear all incident markers
+  const clearIncidentMarkers = () => {
+    incidentMarkers.current.forEach(marker => marker.remove());
+    incidentMarkers.current = [];
+  };
+
+  // Add all incidents to map
+  const addAllIncidentsToMap = () => {
+    if (!map.current) return;
+    
+    console.log('Adding all incidents to map. Dynamic incidents:', dynamicIncidents.length, 'Static incidents:', incidents.length);
+    
+    clearIncidentMarkers();
+    
+    // Add default incidents
+    incidents.forEach((incident) => {
+      addIncidentMarker(incident);
+    });
+
+    // Add dynamic incidents from reports
+    dynamicIncidents.forEach((incident) => {
+      addIncidentMarker(incident);
+    });
+  };
 
   const getZoneTypeIcon = (type: string) => {
     switch (type) {
@@ -388,10 +520,13 @@ const MapComponent = () => {
       zoom: 15
     });
 
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Add navigation controls with custom positioning to avoid overlap
+    const nav = new mapboxgl.NavigationControl();
+    map.current.addControl(nav, 'top-right');
 
     map.current.on('load', () => {
+      console.log('Map loaded, adding markers...');
+      
       // Add enhanced safe zones
       safeZones.forEach((zone) => {
         const el = createEnhancedMarker(zone);
@@ -423,66 +558,13 @@ const MapComponent = () => {
           .addTo(map.current!);
       });
 
+      // Load and add stored incidents after map is ready
+      const storedIncidents = loadStoredIncidents();
+      
       // Add enhanced incident markers
-      incidents.forEach((incident) => {
-        const el = document.createElement('div');
-        el.className = 'incident-marker enhanced';
-        const color = incident.type === 'ice' ? '#dc2626' : '#f59e0b';
-        const emoji = incident.type === 'ice' ? '🚨' : '👮‍♂️';
-        
-        el.innerHTML = `
-          <div style="position: relative;">
-            <div style="
-              position: absolute;
-              width: 40px;
-              height: 40px;
-              background-color: ${color}40;
-              border-radius: 50%;
-              animation: incidentPulse 1.5s infinite;
-              top: -10px;
-              left: -8px;
-            "></div>
-            <div style="
-              position: relative;
-              width: 24px;
-              height: 24px;
-              background-color: ${color};
-              border: 3px solid white;
-              border-radius: 50%;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-              cursor: pointer;
-              z-index: 2;
-            "></div>
-            <div style="
-              position: absolute;
-              top: -30px;
-              left: 50%;
-              transform: translateX(-50%);
-              font-size: 16px;
-              z-index: 3;
-            ">${emoji}</div>
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-          `<div style="color: black; padding: 8px;">
-             <div style="font-weight: bold; color: ${color};">${incident.type.toUpperCase()} Activity</div>
-             <div style="color: #666; font-size: 12px; margin: 4px 0;">${incident.description}</div>
-             <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px;">
-               <span>Reported ${incident.time}</span>
-               <span style="color: ${color};">Severity: ${incident.severity}</span>
-             </div>
-             <div style="font-size: 11px; color: #666; margin-top: 4px;">
-               ${incident.reports} reports • ${incident.verified ? '✅ Verified' : '⚠️ Unverified'}
-             </div>
-           </div>`
-        );
-
-        new mapboxgl.Marker(el)
-          .setLngLat([incident.lng, incident.lat])
-          .setPopup(popup)
-          .addTo(map.current!);
-      });
+      addAllIncidentsToMap();
+      
+      console.log('Map initialization complete. Stored incidents loaded:', storedIncidents.length);
     });
   };
 
@@ -493,10 +575,39 @@ const MapComponent = () => {
       getCurrentLocation().catch(console.error);
     }
 
+    // Listen for new incident reports
+    const handleNewIncident = (event: CustomEvent) => {
+      const newIncident = event.detail;
+      console.log('New incident reported:', newIncident);
+      
+      setDynamicIncidents(prev => {
+        const updated = [...prev, newIncident];
+        console.log('Updated dynamic incidents:', updated);
+        return updated;
+      });
+      
+      // If map is ready, add the marker immediately
+      if (map.current && map.current.loaded()) {
+        console.log('Adding new incident marker immediately');
+        addIncidentMarker(newIncident);
+      }
+    };
+
+    window.addEventListener('newIncidentReported', handleNewIncident as EventListener);
+
     return () => {
       map.current?.remove();
+      window.removeEventListener('newIncidentReported', handleNewIncident as EventListener);
     };
   }, [mapboxToken]);
+
+  // Re-render incidents when dynamicIncidents changes
+  useEffect(() => {
+    if (map.current && map.current.loaded()) {
+      console.log('Dynamic incidents changed, re-rendering map');
+      addAllIncidentsToMap();
+    }
+  }, [dynamicIncidents]);
 
   // Add current location marker to map
   useEffect(() => {
@@ -683,24 +794,24 @@ const MapComponent = () => {
             initial={{ opacity: 0, x: -300 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
-            className="absolute top-4 left-4 right-4 z-25 bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 max-h-[70vh] overflow-hidden"
+            className="absolute top-20 left-2 sm:left-4 z-25 bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl border border-gray-200 max-h-[80vh] sm:max-h-[70vh] overflow-y-auto max-w-sm"
           >
-            <div className="p-4">
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-100 p-2 rounded-lg">
-                    <Route className="w-5 h-5 text-green-600" />
+              <div className="flex items-center justify-between pb-2 sm:pb-3 border-b border-gray-200">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="bg-green-100 p-1.5 sm:p-2 rounded-lg">
+                    <Route className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Route to {selectedZone.name}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <h3 className="font-semibold sm:font-bold text-gray-900 text-sm sm:text-base">Route to {selectedZone.name}</h3>
+                    <div className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
-                        <Timer className="w-4 h-4" />
+                        <Timer className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{formatDuration(routeData.duration)}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Footprints className="w-4 h-4" />
+                        <Footprints className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{formatDistance(routeData.distance)}</span>
                       </div>
                     </div>
@@ -709,37 +820,43 @@ const MapComponent = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={clearRoute}
-                  className="text-gray-400 hover:text-gray-600"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearRoute();
+                  }}
+                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center cursor-pointer relative z-30"
+                  type="button"
                 >
-                  ✕
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 pointer-events-none" />
                 </Button>
               </div>
 
               {/* Route Information */}
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <div className="flex items-center space-x-2 text-blue-600 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm font-medium">Static Route Display</span>
+              <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+                <div className="flex items-center space-x-2 text-blue-700 mb-1 sm:mb-2">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-sm sm:text-base font-medium">Static Route Display</span>
                 </div>
-                <p className="text-sm text-blue-800">
+                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
                   This shows a walking route to your destination. For privacy, no location tracking is enabled.
                 </p>
               </div>
 
               {/* Emergency Contact */}
-              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">Emergency Contact</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                    <span className="text-sm sm:text-base font-medium text-red-800">Emergency Contact</span>
                   </div>
                   <Button
                     size="sm"
-                    className="bg-red-600 hover:bg-red-700 text-xs"
+                    className="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-md sm:rounded-lg"
                     onClick={() => window.open(`tel:${selectedZone.phone}`, '_self')}
                   >
-                    📞 {selectedZone.phone}
+                    <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                    {selectedZone.phone}
                   </Button>
                 </div>
               </div>
@@ -753,7 +870,7 @@ const MapComponent = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className={`absolute bottom-4 left-2 sm:left-4 bg-white/95 backdrop-blur p-2 sm:p-4 rounded-lg sm:rounded-xl shadow-xl text-xs sm:text-sm space-y-2 sm:space-y-3 z-20 max-w-[180px] sm:max-w-xs ${isNavigating ? 'hidden' : ''}`}
+        className={`absolute bottom-28 left-2 sm:left-4 bg-white/95 backdrop-blur p-2 sm:p-4 rounded-lg sm:rounded-xl shadow-xl text-xs sm:text-sm space-y-2 sm:space-y-3 z-20 max-w-[180px] sm:max-w-xs ${isNavigating ? 'hidden' : ''}`}
       >
         <div className="text-gray-800 font-semibold sm:font-bold text-sm sm:text-lg mb-1 sm:mb-3 flex items-center">
           <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2 opacity-75" /> UCSD Safe Campus
@@ -835,7 +952,7 @@ const MapComponent = () => {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.7 }}
-        className="absolute top-16 sm:top-20 right-2 sm:right-4 bg-white/95 backdrop-blur p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg text-[10px] sm:text-xs z-20 max-w-[150px] sm:max-w-xs"
+        className="absolute top-44 sm:top-48 right-2 sm:right-4 bg-white/95 backdrop-blur p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-lg text-[10px] sm:text-xs z-20 max-w-[150px] sm:max-w-xs"
       >
         <div className="text-gray-800 font-semibold sm:font-bold mb-1 sm:mb-2 text-xs sm:text-sm">📊 Live Stats</div>
         <div className="space-y-0.5 sm:space-y-1">
@@ -851,12 +968,22 @@ const MapComponent = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Incidents:</span>
-            <span className="text-red-600 font-medium">{incidents.length} Reported</span>
+            <span className="text-red-600 font-medium">{incidents.length + dynamicIncidents.length} Reported</span>
           </div>
         </div>
       </motion.div>
 
       <style>{`
+        /* Custom positioning for Mapbox navigation controls */
+        .mapboxgl-ctrl-top-right {
+          top: 80px !important;
+          right: 10px !important;
+        }
+        
+        .mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+          margin: 0 0 10px 0 !important;
+        }
+
         @keyframes markerPulse {
           0% {
             transform: scale(1);

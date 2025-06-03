@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { MapPin, AlertTriangle, Shield, Camera, Bell, Info, Navigation } from "lucide-react";
+import { MapPin, AlertTriangle, Shield, Camera, Bell, Info, Navigation, Plus, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MapComponent from "@/components/MapComponent";
 import PanicButton from "@/components/PanicButton";
@@ -16,6 +16,7 @@ const MapView = () => {
   const [alerts, setAlerts] = useState<AlertNotification[]>([]);
   const [showAlerts, setShowAlerts] = useState(true);
   const [isNotificationInitialized, setIsNotificationInitialized] = useState(false);
+  const [showTestButton, setShowTestButton] = useState(false);
 
   const notificationService = NotificationService.getInstance();
 
@@ -42,8 +43,25 @@ const MapView = () => {
 
     window.addEventListener('communityAlert', handleCommunityAlert as EventListener);
 
+    // Show test button in development mode (when clicking top-left corner 3 times)
+    let clickCount = 0;
+    const handleCornerClick = (e: MouseEvent) => {
+      if (e.clientX < 50 && e.clientY < 50) {
+        clickCount++;
+        if (clickCount >= 3) {
+          setShowTestButton(true);
+          console.log('Test mode enabled');
+        }
+      } else {
+        clickCount = 0;
+      }
+    };
+
+    window.addEventListener('click', handleCornerClick);
+
     return () => {
       window.removeEventListener('communityAlert', handleCommunityAlert as EventListener);
+      window.removeEventListener('click', handleCornerClick);
     };
   }, [navigate]);
 
@@ -118,6 +136,26 @@ const MapView = () => {
 
   const stats = getAlertStats();
 
+  const sendTestNotification = async () => {
+    await notificationService.sendTestNotification();
+  };
+
+  const simulateICEAlert = async () => {
+    await notificationService.sendCommunityAlert({
+      id: `test_ice_${Date.now()}`,
+      type: 'ice',
+      title: 'ICE Activity Alert - Critical',
+      body: 'Immigration enforcement activity reported in campus area. Avoid the location and seek safe spaces.',
+      severity: 'ice',
+      timestamp: Date.now(),
+      location: {
+        lat: 32.8801,
+        lng: -117.2340,
+        address: 'UCSD Campus Area'
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">
       {/* Header */}
@@ -180,7 +218,7 @@ const MapView = () => {
           initial={{ opacity: 0, x: -300 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -300 }}
-          className="absolute top-16 sm:top-20 left-2 right-2 sm:left-4 sm:right-4 z-10 max-h-60 sm:max-h-72 overflow-hidden bg-gray-900/95 backdrop-blur-lg rounded-lg sm:rounded-xl border border-gray-700"
+          className="absolute top-16 sm:top-20 left-2 right-32 sm:left-4 sm:right-56 z-10 max-h-60 sm:max-h-72 overflow-hidden bg-gray-900/95 backdrop-blur-lg rounded-lg sm:rounded-xl border border-gray-700"
         >
           <div className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -214,35 +252,7 @@ const MapView = () => {
         </motion.div>
       )}
 
-      {/* Report Police/ICE Buttons - Positioned above the map legend */}
-      {/* 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        // Positioned higher, using bottom margin from MapComponent legend, check MapComponent legend bottom to adjust if needed
-        className="absolute bottom-48 sm:bottom-52 left-2 right-2 sm:left-4 sm:right-4 z-10"
-      >
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          <Button
-            onClick={() => handleQuickReport("police")}
-            className="bg-orange-600 hover:bg-orange-700 text-white p-3 h-12 sm:h-14 rounded-lg sm:rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all duration-200 transform active:scale-95"
-          >
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-sm sm:text-base">Report Police</span>
-          </Button>
-          <Button
-            onClick={() => handleQuickReport("ice")}
-            className="bg-red-600 hover:bg-red-700 text-white p-3 h-12 sm:h-14 rounded-lg sm:rounded-xl shadow-lg flex items-center justify-center space-x-2 transition-all duration-200 transform active:scale-95"
-          >
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-sm sm:text-base">Report ICE</span>
-          </Button>
-        </div>
-      </motion.div>
-      */}
-
-      {/* Bottom Action Bar (SOS, Add Report/Camera, Navigate) */}
+      {/* Bottom Action Bar (SOS, Add Report, Navigate) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -270,7 +280,7 @@ const MapView = () => {
             >
               <Navigation className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
-            <span className="text-xs text-gray-300">Safe Zone</span>
+            <span className="text-xs text-black font-medium">Safe Zone</span>
           </motion.div>
 
           {/* Panic Button (Center) */}
@@ -278,7 +288,7 @@ const MapView = () => {
             <PanicButton /> {/* PanicButton already has some bottom margin/text if not pressed */}
           </div>
 
-          {/* Camera/Add Report Button (Right) */}
+          {/* Add Report Button (Right) */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -286,16 +296,71 @@ const MapView = () => {
             className="flex flex-col items-center space-y-1"
           >
             <Button
-              onClick={() => navigate("/report?mode=camera")}
-              className="bg-gray-700 hover:bg-gray-600 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
+              onClick={() => navigate("/report")}
+              className="bg-red-600 hover:bg-red-700 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-200 transform active:scale-95"
               size="icon"
             >
-              <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
-            <span className="text-xs text-gray-300">Add Report</span>
+            <span className="text-xs text-black font-medium">Add Report</span>
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Emergency Actions */}
+      <motion.div
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        className="absolute bottom-6 left-6 z-20 space-y-3"
+      >
+        <Button
+          size="sm"
+          variant="secondary"
+          className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-white shadow-lg"
+          onClick={() => navigate('/emergency')}
+        >
+          <Phone className="w-5 h-5" />
+        </Button>
+        
+        <Button
+          size="sm"
+          variant="secondary"
+          className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-700 text-white border-2 border-white shadow-lg"
+          onClick={() => {
+            // Find nearest safe zone and zoom to it
+            window.dispatchEvent(new CustomEvent('findNearestSafeZone'));
+          }}
+        >
+          <Shield className="w-5 h-5" />
+        </Button>
+      </motion.div>
+
+      {/* Test Notification Buttons (Development) */}
+      {showTestButton && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute top-6 right-6 z-30 space-y-2"
+        >
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-purple-600 hover:bg-purple-700 text-white border-white"
+            onClick={sendTestNotification}
+          >
+            🧪 Test Notification
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-red-800 hover:bg-red-900 text-white border-white"
+            onClick={simulateICEAlert}
+          >
+            🚨 Test ICE Alert
+          </Button>
+        </motion.div>
+      )}
     </div>
   );
 };

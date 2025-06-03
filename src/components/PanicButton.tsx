@@ -141,7 +141,7 @@ const PanicButton = () => {
       </motion.div>
       
       {!isPressed && (
-        <p className="text-xs text-gray-400 text-center max-w-20">
+        <p className="text-xs text-black font-medium text-center max-w-20">
           Emergency
         </p>
       )}

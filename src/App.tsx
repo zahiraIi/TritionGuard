@@ -13,6 +13,7 @@ import Emergency from "./pages/Emergency";
 import KnowYourRights from "./pages/KnowYourRights";
 import NotFound from "./pages/NotFound";
 import NotificationService from "./services/NotificationService";
+import NotificationToast from "./components/NotificationToast";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <NotificationToast />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

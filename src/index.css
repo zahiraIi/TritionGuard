@@ -99,3 +99,101 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Enhanced marker animations */
+@keyframes markerPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes incidentPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes locationPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Enhanced incident markers */
+.incident-marker {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.incident-marker:hover {
+  z-index: 1000 !important;
+}
+
+/* Custom popup styles */
+.incident-popup .mapboxgl-popup-content {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: none;
+  padding: 0;
+  max-width: 280px;
+}
+
+.incident-popup .mapboxgl-popup-tip {
+  border-top-color: white;
+}
+
+/* Safe zone marker enhancements */
+.safe-zone-marker {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.safe-zone-marker:hover {
+  transform: scale(1.1);
+  z-index: 1000 !important;
+}
+
+/* Custom popup for safe zones */
+.custom-popup .mapboxgl-popup-content {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: none;
+  padding: 0;
+  max-width: 300px;
+}
+
+.custom-popup .mapboxgl-popup-tip {
+  border-top-color: white;
+}
+
+/* Current location marker */
+.current-location-marker {
+  z-index: 100;
+}

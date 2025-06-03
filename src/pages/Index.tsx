@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, MapPin, Plus, Minus, Navigation, Map, Phone, Settings } from "lucide-react";
+import { Shield, Users, MapPin, Plus, Minus } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -49,34 +49,8 @@ const Index = () => {
             className="mb-12"
           >
             <div className="w-80 h-64 mx-auto bg-gray-900 rounded-3xl relative overflow-hidden shadow-2xl">
-              {/* Status Bar */}
-              <div className="absolute top-0 left-0 right-0 h-8 bg-black/20 backdrop-blur flex items-center justify-between px-4 text-white text-xs">
-                <div className="flex items-center space-x-2">
-                  <span>APRIL 5</span>
-                  <span>☀️ 20°C</span>
-                </div>
-                <span>7:30PM</span>
-                <div className="flex items-center space-x-1">
-                  <span>📶 5G</span>
-                  <span>🔋 100%</span>
-                </div>
-              </div>
-
-              {/* Search Bar */}
-              <motion.div 
-                className="absolute top-12 left-4 right-4 z-20"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <div className="bg-gray-800/90 backdrop-blur rounded-full px-4 py-2 flex items-center space-x-2">
-                  <span className="text-white text-sm">📍 UCSD Campus</span>
-                  <button className="ml-auto text-gray-400 hover:text-white">✕</button>
-                </div>
-              </motion.div>
-
               {/* Map Content */}
-              <div className="absolute inset-0 pt-20">
+              <div className="absolute inset-0">
                 {/* Street Network */}
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 256">
                   {/* Main Streets */}
@@ -241,41 +215,6 @@ const Index = () => {
                   <button className="p-2 text-white hover:bg-gray-700 rounded-b-lg">
                     <Minus className="w-4 h-4" />
                   </button>
-                </div>
-              </motion.div>
-
-              {/* Bottom Navigation Bar */}
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur flex items-center justify-around"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1.5 }}
-              >
-                <div className="flex flex-col items-center space-y-1">
-                  <div className="w-5 h-5 grid grid-cols-2 gap-px">
-                    <div className="bg-gray-400 rounded-sm"></div>
-                    <div className="bg-gray-400 rounded-sm"></div>
-                    <div className="bg-gray-400 rounded-sm"></div>
-                    <div className="bg-gray-400 rounded-sm"></div>
-                  </div>
-                  <span className="text-gray-400 text-xs">DASHBOARD</span>
-                </div>
-                <div className="flex flex-col items-center space-y-1">
-                  <Navigation className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-400 text-xs">QUICK</span>
-                </div>
-                <div className="flex flex-col items-center space-y-1">
-                  <MapPin className="w-5 h-5 text-blue-400" />
-                  <span className="text-blue-400 text-xs">NAVIGATION</span>
-                  <div className="w-8 h-1 bg-blue-400 rounded-full"></div>
-                </div>
-                <div className="flex flex-col items-center space-y-1">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-400 text-xs">PHONE</span>
-                </div>
-                <div className="flex flex-col items-center space-y-1">
-                  <Settings className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-400 text-xs">SETTINGS</span>
                 </div>
               </motion.div>
             </div>

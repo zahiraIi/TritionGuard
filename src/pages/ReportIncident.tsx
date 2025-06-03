@@ -1,9 +1,10 @@
+
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, MapPin, AlertTriangle, Clock, Image, Trash, Crosshair } from "lucide-react";
+import { ArrowLeft, Camera, MapPin, AlertTriangle, Image, Trash, Crosshair, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CameraService, { IncidentPhoto } from "@/services/CameraService";
 import NotificationService from "@/services/NotificationService";
@@ -33,10 +34,7 @@ const ReportIncident = () => {
   const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
-    // Get current location when component mounts
     getCurrentLocation();
-    
-    // Set default severity based on report type
     if (reportType === 'ice') {
       setSeverity('ice');
     } else if (reportType === 'police') {
@@ -57,10 +55,9 @@ const ReportIncident = () => {
         lng: position.coords.longitude,
       };
       setCurrentLocation(location);
-      setSelectedLocation(location); // Default to current location
+      setSelectedLocation(location);
     } catch (error) {
       console.warn('Could not get current location:', error);
-      // Fallback to UCSD campus center
       const fallbackLocation = { lat: 32.8801, lng: -117.2340 };
       setCurrentLocation(fallbackLocation);
       setSelectedLocation(fallbackLocation);
@@ -79,10 +76,8 @@ const ReportIncident = () => {
       zoom: 16
     });
 
-    // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Create marker for incident location
     const el = document.createElement('div');
     el.className = 'incident-location-marker';
     el.innerHTML = `
@@ -104,7 +99,6 @@ const ReportIncident = () => {
       .setLngLat([selectedLocation?.lng || currentLocation.lng, selectedLocation?.lat || currentLocation.lat])
       .addTo(map.current);
 
-    // Update selected location when marker is dragged
     marker.current.on('dragend', () => {
       const lngLat = marker.current?.getLngLat();
       if (lngLat) {
@@ -115,7 +109,6 @@ const ReportIncident = () => {
       }
     });
 
-    // Allow clicking on map to set location
     map.current.on('click', (e) => {
       const location = {
         lat: e.lngLat.lat,
@@ -139,10 +132,38 @@ const ReportIncident = () => {
   }, [showMapSelector, currentLocation]);
 
   const severityOptions = [
-    { value: 'police', label: 'Police Activity', color: 'bg-orange-500', hoverColor: 'hover:bg-orange-600', description: 'Police presence or enforcement activity' },
-    { value: 'ice', label: 'ICE Activity - Critical', color: 'bg-red-700', hoverColor: 'hover:bg-red-800', description: 'Immigration enforcement - immediate danger' },
-    { value: 'general', label: 'General Safety Concern', color: 'bg-yellow-500', hoverColor: 'hover:bg-yellow-600', description: 'Other safety-related incidents' },
-    { value: 'emergency', label: 'Emergency Situation', color: 'bg-red-500', hoverColor: 'hover:bg-red-600', description: 'Immediate help needed' }
+    { 
+      value: 'general', 
+      label: 'General Safety Concern', 
+      color: 'from-yellow-400 to-yellow-500',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+      description: 'Other safety-related incidents' 
+    },
+    { 
+      value: 'police', 
+      label: 'Police Activity', 
+      color: 'from-orange-400 to-orange-500',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      description: 'Police presence or enforcement activity' 
+    },
+    { 
+      value: 'ice', 
+      label: 'ICE Activity - Critical', 
+      color: 'from-red-500 to-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+      description: 'Immigration enforcement - immediate danger' 
+    },
+    { 
+      value: 'emergency', 
+      label: 'Emergency Situation', 
+      color: 'from-red-600 to-red-700',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-300',
+      description: 'Immediate help needed' 
+    }
   ];
 
   const handleTakePhoto = async () => {
@@ -152,7 +173,7 @@ const ReportIncident = () => {
         setPhotos(prev => [...prev, photo]);
         toast({
           title: "Photo captured",
-          description: "Evidence photo has been securely stored with location data",
+          description: "Evidence photo has been securely stored",
         });
       }
     } catch (error) {
@@ -192,7 +213,6 @@ const ReportIncident = () => {
     setIsSubmitting(true);
 
     try {
-      // Create incident report
       const incidentId = `incident_${Date.now()}`;
       const reportLocation = selectedLocation || currentLocation;
       
@@ -206,7 +226,6 @@ const ReportIncident = () => {
         return;
       }
 
-      // Create new incident for the map
       const newIncident = {
         id: incidentId,
         lat: reportLocation.lat,
@@ -220,15 +239,10 @@ const ReportIncident = () => {
         timestamp: Date.now()
       };
 
-      console.log('Submitting new incident:', newIncident);
-
-      // Store incident locally for the map FIRST
       const incidents = JSON.parse(localStorage.getItem('trition_incidents') || '[]');
       incidents.push(newIncident);
       localStorage.setItem('trition_incidents', JSON.stringify(incidents));
-      console.log('Incident stored locally:', incidents.length, 'total incidents');
 
-      // Store report details
       const reports = JSON.parse(localStorage.getItem('trition_reports') || '[]');
       reports.push({
         id: incidentId,
@@ -241,7 +255,6 @@ const ReportIncident = () => {
       });
       localStorage.setItem('trition_reports', JSON.stringify(reports));
 
-      // Send community alert with enhanced notification
       await notificationService.sendCommunityAlert({
         id: incidentId,
         type: reportType as any,
@@ -256,19 +269,15 @@ const ReportIncident = () => {
         timestamp: Date.now(),
       });
 
-      // Trigger a custom event to update the map IMMEDIATELY
-      console.log('Dispatching newIncidentReported event');
       window.dispatchEvent(new CustomEvent('newIncidentReported', { 
         detail: newIncident 
       }));
 
-      // Show immediate success feedback
       toast({
         title: "Report submitted successfully! 🚨",
-        description: "Community members have been alerted. Your report is now visible on the map.",
+        description: "Community members have been alerted.",
       });
 
-      // Add a small delay to ensure the map updates before navigation
       setTimeout(() => {
         navigate("/map");
       }, 2000);
@@ -292,7 +301,7 @@ const ReportIncident = () => {
           description: 'Report police presence or activity',
           icon: AlertTriangle,
           color: 'text-orange-500',
-          bgColor: 'bg-orange-500/10'
+          bgColor: 'from-orange-50 to-orange-100'
         };
       case 'ice':
         return {
@@ -300,7 +309,7 @@ const ReportIncident = () => {
           description: 'Report immigration enforcement activity',
           icon: AlertTriangle,
           color: 'text-red-500',
-          bgColor: 'bg-red-500/10'
+          bgColor: 'from-red-50 to-red-100'
         };
       default:
         return {
@@ -308,7 +317,7 @@ const ReportIncident = () => {
           description: 'Report any safety concern',
           icon: AlertTriangle,
           color: 'text-blue-500',
-          bgColor: 'bg-blue-500/10'
+          bgColor: 'from-blue-50 to-blue-100'
         };
     }
   };
@@ -317,238 +326,246 @@ const ReportIncident = () => {
   const IconComponent = typeInfo.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center space-x-4 mb-6"
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/map")}
-            className="text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-          <h1 className="text-2xl font-bold">Report Incident</h1>
-        </motion.div>
-
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
-          {/* Incident Type */}
-          <div className={`${typeInfo.bgColor} border border-white/10 rounded-xl p-6`}>
-            <div className="flex items-center space-x-4">
-              <IconComponent className={`w-8 h-8 ${typeInfo.color}`} />
-              <div>
-                <h2 className="text-xl font-bold">{typeInfo.title}</h2>
-                <p className="text-gray-300">{typeInfo.description}</p>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white sticky top-0 z-50">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/map")}
+              className="text-white hover:bg-white/10 rounded-full"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold">Report Incident</h1>
+              <p className="text-gray-300 text-sm">Anonymous community alert</p>
+            </div>
+            <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5" />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Location Selection */}
-          <div className="space-y-4">
-            <label className="text-lg font-semibold">Incident Location</label>
-            
-            {selectedLocation && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-green-400" />
-                    <div>
-                      <p className="font-medium">Selected Location</p>
-                      <p className="text-sm text-gray-300">
-                        {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMapSelector(!showMapSelector)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
-                  >
-                    <Crosshair className="w-4 h-4 mr-2" />
-                    {showMapSelector ? 'Hide Map' : 'Select on Map'}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Map Selector */}
-            {showMapSelector && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 300 }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden"
-              >
-                <div className="p-4">
-                  <p className="text-sm text-gray-300 mb-3">
-                    Drag the red marker or click anywhere on the map to set the incident location
-                  </p>
-                  <div ref={mapRef} className="w-full h-64 rounded-lg overflow-hidden" />
-                </div>
-              </motion.div>
-            )}
+      <form onSubmit={handleSubmit} className="container mx-auto px-6 py-6 space-y-6">
+        {/* Incident Type */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`bg-gradient-to-r ${typeInfo.bgColor} rounded-2xl p-6 border border-gray-100`}
+        >
+          <div className="flex items-center space-x-4">
+            <div className={`w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-700 rounded-2xl flex items-center justify-center`}>
+              <IconComponent className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-gray-900">{typeInfo.title}</h2>
+              <p className="text-gray-600">{typeInfo.description}</p>
+            </div>
           </div>
+        </motion.div>
 
-          {/* Severity Selection */}
-          <div className="space-y-3">
-            <label className="text-lg font-semibold">Incident Type & Priority</label>
-            
-            {severity === 'ice' && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-900/30 border border-red-500/50 rounded-lg p-3 flex items-center space-x-3"
-              >
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <div className="text-sm">
-                  <div className="font-medium text-red-200">Critical Priority Selected</div>
-                  <div className="text-red-300">This report will be marked as immediate danger and sent with highest priority to the community.</div>
+        {/* Location Selection */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Incident Location</h3>
+          
+          {selectedLocation && (
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Selected Location</p>
+                    <p className="text-sm text-gray-600">
+                      {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+                    </p>
+                  </div>
                 </div>
-              </motion.div>
-            )}
-            
-            <div className="grid grid-cols-1 gap-2.5">
-              {severityOptions.map((option) => {
-                const isSelected = severity === option.value;
-                return (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMapSelector(!showMapSelector)}
+                  className="rounded-xl"
+                >
+                  <Crosshair className="w-4 h-4 mr-2" />
+                  {showMapSelector ? 'Hide' : 'Edit'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {showMapSelector && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 300 }}
+              className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
+            >
+              <div className="p-4">
+                <p className="text-sm text-gray-600 mb-3">
+                  Drag the marker or tap to set the incident location
+                </p>
+                <div ref={mapRef} className="w-full h-64 rounded-xl overflow-hidden" />
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Severity Selection */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Incident Priority</h3>
+          
+          <div className="space-y-3">
+            {severityOptions.map((option) => {
+              const isSelected = severity === option.value;
+              return (
+                <motion.div
+                  key={option.value}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Button
-                    key={option.value}
                     type="button"
                     onClick={() => setSeverity(option.value)}
                     variant="ghost"
                     className={cn(
-                      "w-full h-auto p-3 text-left rounded-lg transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 justify-start",
+                      "w-full p-4 h-auto rounded-2xl border-2 transition-all duration-200",
                       isSelected
-                        ? `${option.color} ${option.hoverColor} text-white border-transparent focus-visible:ring-white`
-                        : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:border-slate-600 focus-visible:ring-slate-400"
+                        ? `${option.bgColor} ${option.borderColor} shadow-sm`
+                        : "bg-white border-gray-100 hover:bg-gray-50"
                     )}
                   >
-                    <div className="flex items-center w-full">
-                      <div className={cn("w-2.5 h-2.5 rounded-full mr-3 flex-shrink-0", option.color)}></div>
-                      <div className="flex-1">
-                        <p className={cn(
-                          "font-medium text-sm",
-                          isSelected ? "text-white" : "text-slate-100"
-                        )}>
-                          {option.label}
-                        </p>
-                        <p className={cn(
-                          "text-xs mt-0.5",
-                          isSelected ? "text-white/80" : "text-slate-400"
-                        )}>
-                          {option.description}
-                        </p>
+                    <div className="flex items-center space-x-4 w-full">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
+                        isSelected ? `bg-gradient-to-r ${option.color}` : "bg-gray-100"
+                      )}>
+                        <div className={cn(
+                          "w-2.5 h-2.5 rounded-full",
+                          isSelected ? "bg-white" : "bg-gray-400"
+                        )}></div>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-semibold text-gray-900">{option.label}</p>
+                        <p className="text-sm text-gray-600">{option.description}</p>
                       </div>
                     </div>
                   </Button>
-                );
-              })}
-            </div>
+                </motion.div>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Photo Evidence */}
-          <div className="space-y-4">
-            <label className="text-lg font-semibold">Photo Evidence (Optional)</label>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                onClick={handleTakePhoto}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-6 px-4 rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[80px]"
-              >
-                <Camera className="w-6 h-6 flex-shrink-0" />
+        {/* Photo Evidence */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Photo Evidence (Optional)</h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              onClick={handleTakePhoto}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-6 rounded-2xl shadow-sm"
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <Camera className="w-6 h-6" />
                 <span className="text-sm font-medium">Take Photo</span>
-              </Button>
-              
-              <Button
-                type="button"
-                onClick={handleSelectFromGallery}
-                className="bg-gray-600 hover:bg-gray-700 text-white py-6 px-4 rounded-xl flex flex-col items-center justify-center space-y-3 min-h-[80px]"
-              >
-                <Image className="w-6 h-6 flex-shrink-0" />
-                <span className="text-sm font-medium">From Gallery</span>
-              </Button>
-            </div>
-
-            {/* Photo Preview */}
-            {photos.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-300">{photos.length} photo(s) attached</p>
-                <div className="flex flex-wrap gap-2">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="relative bg-gray-800 rounded-lg p-2 flex items-center space-x-2">
-                      <Image className="w-4 h-4 text-blue-400" />
-                      <span className="text-xs text-gray-300">
-                        {photo.type} - {new Date(photo.timestamp).toLocaleTimeString()}
-                      </span>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => removePhoto(photo.id)}
-                        className="w-6 h-6 text-red-400 hover:text-red-300"
-                      >
-                        <Trash className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
               </div>
-            )}
+            </Button>
+            
+            <Button
+              type="button"
+              onClick={handleSelectFromGallery}
+              className="bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 py-6 rounded-2xl shadow-sm"
+              variant="outline"
+            >
+              <div className="flex flex-col items-center space-y-2">
+                <Image className="w-6 h-6" />
+                <span className="text-sm font-medium">From Gallery</span>
+              </div>
+            </Button>
           </div>
 
-          {/* Description */}
-          <div className="space-y-3">
-            <label className="text-lg font-semibold">Additional Details (Optional)</label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what you observed, number of individuals, vehicles, etc."
-              className="min-h-24 bg-white/5 border-white/20 text-white placeholder:text-gray-400"
-            />
-          </div>
+          {photos.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">{photos.length} photo(s) attached</p>
+              <div className="space-y-2">
+                {photos.map((photo) => (
+                  <div key={photo.id} className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Image className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{photo.type} photo</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(photo.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removePhoto(photo.id)}
+                      className="w-8 h-8 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-xl shadow-lg transition-all duration-300"
-          >
-            {isSubmitting ? (
+        {/* Description */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-gray-900">Additional Details (Optional)</h3>
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe what you observed, number of individuals, vehicles, etc."
+            className="min-h-24 rounded-2xl border-gray-200 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 resize-none"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-4 rounded-2xl shadow-lg transition-all duration-300"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center space-x-2">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
+                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
               />
-            ) : (
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5" />
-                <span>Submit Report & Alert Community</span>
-              </div>
-            )}
-          </Button>
+              <span>Sending Alert...</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Send className="w-5 h-5" />
+              <span>Submit Report & Alert Community</span>
+            </div>
+          )}
+        </Button>
 
-          <p className="text-xs text-gray-400 text-center">
-            Reports are anonymous and help keep the community safe
-          </p>
-        </motion.form>
-      </div>
+        <p className="text-xs text-gray-500 text-center">
+          Reports are anonymous and help keep the community safe
+        </p>
+      </form>
+
+      {/* Bottom Safe Area */}
+      <div className="h-8"></div>
     </div>
   );
 };

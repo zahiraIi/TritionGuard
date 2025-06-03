@@ -1,7 +1,8 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, MapPin } from "lucide-react";
+import { Shield, Users, MapPin, Plus, Minus, Navigation, Map, Phone, Settings } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with animated map */}
+      {/* Header with animated interactive map */}
       <div className="bg-white px-6 pt-16 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -40,137 +41,179 @@ const Index = () => {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          {/* Animated Mapbox-style map */}
+          {/* Interactive Dark Map Component */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mb-12"
           >
-            <div className="w-80 h-64 mx-auto bg-gray-900 rounded-3xl flex items-center justify-center relative overflow-hidden">
-              {/* Animated grid background */}
+            <div className="w-80 h-64 mx-auto bg-gray-900 rounded-3xl relative overflow-hidden shadow-2xl">
+              {/* Status Bar */}
+              <div className="absolute top-0 left-0 right-0 h-8 bg-black/20 backdrop-blur flex items-center justify-between px-4 text-white text-xs">
+                <div className="flex items-center space-x-2">
+                  <span>APRIL 5</span>
+                  <span>☀️ 20°C</span>
+                </div>
+                <span>7:30PM</span>
+                <div className="flex items-center space-x-1">
+                  <span>📶 5G</span>
+                  <span>🔋 100%</span>
+                </div>
+              </div>
+
+              {/* Search Bar */}
               <motion.div 
-                className="absolute inset-0"
-                animate={{ 
-                  backgroundPosition: ["0px 0px", "24px 24px"] 
-                }}
-                transition={{ 
-                  duration: 8, 
-                  repeat: Infinity, 
-                  ease: "linear" 
-                }}
-                style={{
-                  backgroundImage: `
-                    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '24px 24px'
-                }}
-              />
-              
-              {/* Animated location pins and areas */}
-              <div className="absolute inset-0">
-                {/* Pulsing location areas */}
-                <motion.div 
-                  className="absolute top-16 left-12 w-16 h-12 bg-blue-500/30 rounded-xl"
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.5, 0.3]
-                  }}
-                  transition={{ 
-                    duration: 3,
-                    repeat: Infinity,
-                    delay: 0
-                  }}
+                className="absolute top-12 left-4 right-4 z-20"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="bg-gray-800/90 backdrop-blur rounded-full px-4 py-2 flex items-center space-x-2">
+                  <span className="text-white text-sm">📍 UCSD Campus</span>
+                  <button className="ml-auto text-gray-400 hover:text-white">✕</button>
+                </div>
+              </motion.div>
+
+              {/* Map Content */}
+              <div className="absolute inset-0 pt-20">
+                {/* Street Network */}
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 256">
+                  {/* Main Streets */}
+                  <motion.path
+                    d="M50 80 Q120 85 180 90 Q220 95 280 100"
+                    stroke="#4a5568"
+                    strokeWidth="3"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 2, delay: 0.8 }}
+                  />
+                  <motion.path
+                    d="M40 120 Q100 125 160 130 Q200 135 270 140"
+                    stroke="#4a5568"
+                    strokeWidth="2"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 2, delay: 1 }}
+                  />
+                  <motion.path
+                    d="M60 160 Q130 165 200 170 Q240 175 290 180"
+                    stroke="#4a5568"
+                    strokeWidth="2"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 2, delay: 1.2 }}
+                  />
+                  
+                  {/* Cross Streets */}
+                  <motion.path
+                    d="M120 60 L125 200"
+                    stroke="#4a5568"
+                    strokeWidth="2"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.5, delay: 1.4 }}
+                  />
+                  <motion.path
+                    d="M180 70 L185 190"
+                    stroke="#4a5568"
+                    strokeWidth="2"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.5, delay: 1.6 }}
+                  />
+
+                  {/* Navigation Route */}
+                  <motion.path
+                    d="M160 50 Q165 80 170 110 Q175 140 180 170 Q185 190 190 210"
+                    stroke="#3b82f6"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 3, delay: 2 }}
+                  />
+                </svg>
+
+                {/* Street Labels */}
+                <motion.div
+                  className="absolute top-16 left-20 text-white text-xs font-medium transform -rotate-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.5 }}
+                >
+                  Voigt Drive
+                </motion.div>
+                <motion.div
+                  className="absolute top-28 right-16 text-white text-xs font-medium transform rotate-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.7 }}
+                >
+                  Library Walk
+                </motion.div>
+                <motion.div
+                  className="absolute bottom-20 left-12 text-white text-xs font-medium"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.9 }}
+                >
+                  Scholars Drive
+                </motion.div>
+
+                {/* Buildings/Areas */}
+                <motion.div
+                  className="absolute top-20 left-8 w-12 h-8 bg-gray-700 rounded opacity-60"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.8 }}
                 />
-                <motion.div 
-                  className="absolute top-20 right-16 w-20 h-8 bg-purple-500/20 rounded-lg"
-                  animate={{ 
-                    scale: [1, 1.05, 1],
-                    opacity: [0.2, 0.4, 0.2]
-                  }}
-                  transition={{ 
-                    duration: 4,
-                    repeat: Infinity,
-                    delay: 1
-                  }}
+                <motion.div
+                  className="absolute top-32 right-12 w-16 h-10 bg-gray-700 rounded opacity-60"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 2 }}
                 />
-                <motion.div 
-                  className="absolute bottom-20 left-16 w-12 h-16 bg-green-500/25 rounded-xl"
-                  animate={{ 
-                    scale: [1, 1.08, 1],
-                    opacity: [0.25, 0.45, 0.25]
-                  }}
-                  transition={{ 
-                    duration: 3.5,
-                    repeat: Infinity,
-                    delay: 2
-                  }}
+                <motion.div
+                  className="absolute bottom-16 left-16 w-14 h-12 bg-gray-700 rounded opacity-60"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 2.2 }}
                 />
-                <motion.div 
-                  className="absolute bottom-16 right-12 w-18 h-10 bg-red-500/20 rounded-lg"
-                  animate={{ 
-                    scale: [1, 1.06, 1],
-                    opacity: [0.2, 0.4, 0.2]
-                  }}
-                  transition={{ 
-                    duration: 4.5,
-                    repeat: Infinity,
-                    delay: 0.5
-                  }}
-                />
-                
-                {/* Animated location pins */}
-                <motion.div 
-                  className="absolute top-20 left-16 w-3 h-3 bg-blue-400 rounded-full shadow-lg"
-                  animate={{ 
-                    scale: [1, 1.3, 1],
-                    boxShadow: [
-                      "0 0 0 0 rgba(59, 130, 246, 0.7)",
-                      "0 0 0 8px rgba(59, 130, 246, 0)",
-                      "0 0 0 0 rgba(59, 130, 246, 0)"
-                    ]
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: 0
-                  }}
-                />
-                <motion.div 
-                  className="absolute top-24 right-20 w-2.5 h-2.5 bg-purple-400 rounded-full shadow-lg"
-                  animate={{ 
-                    scale: [1, 1.3, 1],
-                    boxShadow: [
-                      "0 0 0 0 rgba(168, 85, 247, 0.7)",
-                      "0 0 0 6px rgba(168, 85, 247, 0)",
-                      "0 0 0 0 rgba(168, 85, 247, 0)"
-                    ]
-                  }}
-                  transition={{ 
-                    duration: 2.5,
-                    repeat: Infinity,
-                    delay: 1
-                  }}
-                />
-                <motion.div 
-                  className="absolute bottom-24 left-20 w-2.5 h-2.5 bg-green-400 rounded-full shadow-lg"
+
+                {/* Navigation Arrow */}
+                <motion.div
+                  className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
+                  initial={{ scale: 0, rotate: 0 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 3, duration: 0.5 }}
+                >
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-0 h-0 border-l-2 border-l-transparent border-r-2 border-r-transparent border-b-3 border-b-white transform rotate-180"></div>
+                  </div>
+                </motion.div>
+
+                {/* Safety Zones */}
+                <motion.div
+                  className="absolute top-24 left-1/3 w-3 h-3 bg-green-400 rounded-full shadow-lg"
                   animate={{ 
                     scale: [1, 1.3, 1],
                     boxShadow: [
                       "0 0 0 0 rgba(34, 197, 94, 0.7)",
-                      "0 0 0 6px rgba(34, 197, 94, 0)",
+                      "0 0 0 8px rgba(34, 197, 94, 0)",
                       "0 0 0 0 rgba(34, 197, 94, 0)"
                     ]
                   }}
-                  transition={{ 
-                    duration: 2.2,
-                    repeat: Infinity,
-                    delay: 2
-                  }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 3.5 }}
                 />
-                <motion.div 
-                  className="absolute bottom-20 right-16 w-3 h-3 bg-red-400 rounded-full shadow-lg"
+                <motion.div
+                  className="absolute bottom-20 right-1/4 w-3 h-3 bg-red-400 rounded-full shadow-lg"
                   animate={{ 
                     scale: [1, 1.3, 1],
                     boxShadow: [
@@ -179,34 +222,60 @@ const Index = () => {
                       "0 0 0 0 rgba(248, 113, 113, 0)"
                     ]
                   }}
-                  transition={{ 
-                    duration: 1.8,
-                    repeat: Infinity,
-                    delay: 0.5
-                  }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 4 }}
                 />
               </div>
-              
-              {/* Central guard element with subtle animation */}
-              <motion.div 
-                className="relative z-10 w-20 h-20 bg-white/95 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-xl"
-                animate={{ 
-                  y: [0, -2, 0],
-                  boxShadow: [
-                    "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                    "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-                    "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-                  ]
-                }}
-                transition={{ 
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+
+              {/* Map Controls */}
+              <motion.div
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20"
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 1 }}
               >
-                <div className="text-center">
-                  <div className="text-2xl mb-1">🛡️</div>
-                  <div className="w-4 h-0.5 bg-gray-400 mx-auto"></div>
+                <div className="bg-gray-800/90 backdrop-blur rounded-lg flex flex-col shadow-lg">
+                  <button className="p-2 text-white hover:bg-gray-700 rounded-t-lg">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                  <div className="w-full h-px bg-gray-600"></div>
+                  <button className="p-2 text-white hover:bg-gray-700 rounded-b-lg">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* Bottom Navigation Bar */}
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur flex items-center justify-around"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 1.5 }}
+              >
+                <div className="flex flex-col items-center space-y-1">
+                  <div className="w-5 h-5 grid grid-cols-2 gap-px">
+                    <div className="bg-gray-400 rounded-sm"></div>
+                    <div className="bg-gray-400 rounded-sm"></div>
+                    <div className="bg-gray-400 rounded-sm"></div>
+                    <div className="bg-gray-400 rounded-sm"></div>
+                  </div>
+                  <span className="text-gray-400 text-xs">DASHBOARD</span>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <Navigation className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-400 text-xs">QUICK</span>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <MapPin className="w-5 h-5 text-blue-400" />
+                  <span className="text-blue-400 text-xs">NAVIGATION</span>
+                  <div className="w-8 h-1 bg-blue-400 rounded-full"></div>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-400 text-xs">PHONE</span>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <Settings className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-400 text-xs">SETTINGS</span>
                 </div>
               </motion.div>
             </div>

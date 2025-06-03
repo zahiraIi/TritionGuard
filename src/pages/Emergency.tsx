@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Phone, ArrowLeft, Shield, Users, AlertTriangle, Heart } from "lucide-react";
+import { Phone, ArrowLeft, Shield, Users, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -185,15 +185,15 @@ const Emergency = () => {
                   className="w-full bg-white hover:bg-gray-50 text-left p-4 rounded-2xl border border-gray-100 shadow-sm h-auto"
                   variant="ghost"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 ${contact.color} rounded-full flex items-center justify-center`}>
+                  <div className="flex items-center space-x-4 w-full">
+                    <div className={`w-10 h-10 ${contact.color} rounded-full flex items-center justify-center flex-shrink-0`}>
                       <Phone className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex-1 text-center">
-                      <div className="font-medium text-gray-900">{contact.name}</div>
-                      <div className="text-sm text-gray-600">{contact.contact}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 text-left">{contact.name}</div>
+                      <div className="text-sm text-gray-600 text-left">{contact.contact}</div>
                       {contact.phone && (
-                        <div className="text-sm text-gray-500">{contact.phone}</div>
+                        <div className="text-sm text-gray-500 text-left">{contact.phone}</div>
                       )}
                     </div>
                   </div>

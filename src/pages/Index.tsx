@@ -115,32 +115,6 @@ const Index = () => {
                   />
                 </svg>
 
-                {/* Street Labels */}
-                <motion.div
-                  className="absolute top-16 left-20 text-white text-xs font-medium transform -rotate-12"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 2.5 }}
-                >
-                  Voigt Drive
-                </motion.div>
-                <motion.div
-                  className="absolute top-28 right-16 text-white text-xs font-medium transform rotate-12"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 2.7 }}
-                >
-                  Library Walk
-                </motion.div>
-                <motion.div
-                  className="absolute bottom-20 left-12 text-white text-xs font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 2.9 }}
-                >
-                  Scholars Drive
-                </motion.div>
-
                 {/* Buildings/Areas */}
                 <motion.div
                   className="absolute top-20 left-8 w-12 h-8 bg-gray-700 rounded opacity-60"

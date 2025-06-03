@@ -41,62 +41,67 @@ const Index = () => {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          {/* Interactive Dark Map Component - Full Width */}
+          {/* Interactive Dark Map Component with Border */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-12 -mx-6"
+            className="mb-12"
           >
-            <div className="w-full h-64 bg-gray-900 relative overflow-hidden">
+            <div className="w-full h-64 bg-gray-900 relative overflow-hidden rounded-3xl border-4 border-gray-300">
               {/* Map Content */}
               <div className="absolute inset-0">
-                {/* Street Network */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 256">
-                  {/* Main Streets */}
+                {/* Street Network filling entire space */}
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {/* Main Streets spanning full width */}
                   <motion.path
-                    d="M50 80 Q120 85 180 90 Q220 95 280 100"
+                    d="M0 30 Q25 32 50 35 Q75 38 100 40"
                     stroke="#4a5568"
-                    strokeWidth="3"
+                    strokeWidth="1"
                     fill="none"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 2, delay: 0.8 }}
                   />
                   <motion.path
-                    d="M40 120 Q100 125 160 130 Q200 135 270 140"
+                    d="M0 50 Q30 52 60 55 Q80 57 100 60"
                     stroke="#4a5568"
-                    strokeWidth="2"
+                    strokeWidth="0.8"
                     fill="none"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 2, delay: 1 }}
                   />
                   <motion.path
-                    d="M60 160 Q130 165 200 170 Q240 175 290 180"
+                    d="M0 70 Q40 72 70 75 Q85 77 100 80"
                     stroke="#4a5568"
-                    strokeWidth="2"
+                    strokeWidth="0.8"
                     fill="none"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 2, delay: 1.2 }}
                   />
                   
-                  {/* Cross Streets */}
+                  {/* Cross Streets spanning full height */}
                   <motion.path
-                    d="M120 60 L125 200"
+                    d="M35 0 L38 100"
                     stroke="#4a5568"
-                    strokeWidth="2"
+                    strokeWidth="0.8"
                     fill="none"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 1.5, delay: 1.4 }}
                   />
                   <motion.path
-                    d="M180 70 L185 190"
+                    d="M65 0 L68 100"
                     stroke="#4a5568"
-                    strokeWidth="2"
+                    strokeWidth="0.8"
                     fill="none"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 1.5, delay: 1.6 }}
@@ -104,32 +109,33 @@ const Index = () => {
 
                   {/* Navigation Route */}
                   <motion.path
-                    d="M160 50 Q165 80 170 110 Q175 140 180 170 Q185 190 190 210"
+                    d="M50 0 Q52 25 55 50 Q58 75 60 100"
                     stroke="#3b82f6"
-                    strokeWidth="4"
+                    strokeWidth="1.5"
                     fill="none"
                     strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 3, delay: 2 }}
                   />
                 </svg>
 
-                {/* Buildings/Areas */}
+                {/* Buildings/Areas positioned across the space */}
                 <motion.div
-                  className="absolute top-20 left-8 w-12 h-8 bg-gray-700 rounded opacity-60"
+                  className="absolute top-4 left-4 w-8 h-6 bg-gray-700 rounded opacity-60"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1.8 }}
                 />
                 <motion.div
-                  className="absolute top-32 right-12 w-16 h-10 bg-gray-700 rounded opacity-60"
+                  className="absolute top-12 right-8 w-10 h-8 bg-gray-700 rounded opacity-60"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 2 }}
                 />
                 <motion.div
-                  className="absolute bottom-16 left-16 w-14 h-12 bg-gray-700 rounded opacity-60"
+                  className="absolute bottom-8 left-12 w-9 h-7 bg-gray-700 rounded opacity-60"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 2.2 }}
@@ -137,7 +143,7 @@ const Index = () => {
 
                 {/* Navigation Arrow */}
                 <motion.div
-                  className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
+                  className="absolute bottom-6 left-1/2 transform -translate-x-1/2"
                   initial={{ scale: 0, rotate: 0 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 3, duration: 0.5 }}
@@ -149,7 +155,7 @@ const Index = () => {
 
                 {/* Safety Zones */}
                 <motion.div
-                  className="absolute top-24 left-1/3 w-3 h-3 bg-green-400 rounded-full shadow-lg"
+                  className="absolute top-8 left-1/3 w-3 h-3 bg-green-400 rounded-full shadow-lg"
                   animate={{ 
                     scale: [1, 1.3, 1],
                     boxShadow: [
@@ -161,7 +167,7 @@ const Index = () => {
                   transition={{ duration: 2, repeat: Infinity, delay: 3.5 }}
                 />
                 <motion.div
-                  className="absolute bottom-20 right-1/4 w-3 h-3 bg-red-400 rounded-full shadow-lg"
+                  className="absolute bottom-12 right-1/4 w-3 h-3 bg-red-400 rounded-full shadow-lg"
                   animate={{ 
                     scale: [1, 1.3, 1],
                     boxShadow: [

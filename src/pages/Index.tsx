@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -222,7 +221,7 @@ const Index = () => {
           >
             All Your Safety in
             <br />
-            <span className="text-5xl font-black text-gray-900">One Place</span>
+            <span className="text-5xl font-black text-gray-900">TritonGuard</span>
           </motion.h1>
           
           <motion.p

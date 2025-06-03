@@ -66,6 +66,10 @@ const PanicButton = () => {
         if (prev <= 1) {
           clearInterval(newIntervalId);
           setIntervalId(null);
+          
+          // Set emergency state
+          sessionStorage.setItem('emergencyActivated', 'true');
+          
           // Trigger emergency protocol
           toast({
             title: "Emergency Alert Sent",

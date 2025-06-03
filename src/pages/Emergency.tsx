@@ -3,13 +3,39 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Phone, ArrowLeft, Shield, Users, AlertTriangle, Heart } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const Emergency = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [alertSent, setAlertSent] = useState(false);
+  const [isEmergencyActive, setIsEmergencyActive] = useState(false);
+
+  useEffect(() => {
+    // Check if we came from SOS activation by checking if there's an emergency incident
+    const checkEmergencyStatus = () => {
+      // Listen for emergency incidents to determine if SOS was activated
+      const handleEmergencyIncident = () => {
+        setIsEmergencyActive(true);
+      };
+
+      window.addEventListener('addEmergencyIncident', handleEmergencyIncident);
+      
+      // Also check if we're in emergency state based on recent SOS activation
+      // This is a simple check - in a real app you'd want more sophisticated state management
+      const emergencyActivated = sessionStorage.getItem('emergencyActivated');
+      if (emergencyActivated) {
+        setIsEmergencyActive(true);
+      }
+
+      return () => {
+        window.removeEventListener('addEmergencyIncident', handleEmergencyIncident);
+      };
+    };
+
+    checkEmergencyStatus();
+  }, []);
 
   const emergencyContacts = [
     { name: "Legal Aid Hotline", number: "1-800-839-8682", color: "bg-blue-500" },
@@ -67,14 +93,22 @@ const Emergency = () => {
           className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-green-600" />
+            <div className={`w-12 h-12 ${isEmergencyActive ? 'bg-red-100' : 'bg-green-100'} rounded-2xl flex items-center justify-center`}>
+              {isEmergencyActive ? (
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              ) : (
+                <Shield className="w-6 h-6 text-green-600" />
+              )}
             </div>
             <div className="flex-1">
-              <h2 className="font-semibold text-gray-900">You're Safe</h2>
-              <p className="text-sm text-gray-600">Protected environment</p>
+              <h2 className={`font-semibold ${isEmergencyActive ? 'text-red-900' : 'text-gray-900'}`}>
+                {isEmergencyActive ? 'In Danger' : 'You\'re Safe'}
+              </h2>
+              <p className={`text-sm ${isEmergencyActive ? 'text-red-600' : 'text-gray-600'}`}>
+                {isEmergencyActive ? 'Emergency alert activated' : 'Protected environment'}
+              </p>
             </div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <div className={`w-3 h-3 ${isEmergencyActive ? 'bg-red-500' : 'bg-green-500'} rounded-full`}></div>
           </div>
         </motion.div>
 
